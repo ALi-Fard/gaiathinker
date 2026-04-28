@@ -205,21 +205,44 @@ const Index = () => {
         </div>
       </Section>
 
-      {/* References */}
-      <footer className="bg-glacier/30 border-t border-border py-12">
+      {/* References & Brand Footer */}
+      <footer className="bg-foreground text-background py-14">
         <div className="container max-w-6xl">
-          <h3 className="font-semibold text-lg mb-4">References & Further Reading</h3>
-          <ul className="grid md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-            <li>• BC Ministry of Education — Building Student Success K–12 Curriculum</li>
-            <li>• Climate Change Accountability Report (Government of British Columbia)</li>
-            <li>• City of New Westminster — Seven Bold Steps for Climate Action</li>
-            <li>• First Peoples Principles of Learning (FNESC)</li>
-            <li>• BC Council for International Cooperation — Climate Education Resources</li>
-            <li>• PhET Interactive Simulations — Greenhouse Effect</li>
-          </ul>
-          <p className="mt-8 text-xs text-muted-foreground">
-            Designed for educators in the New Westminster School District (SD40). Content reflects BC curriculum as of 2024.
-          </p>
+          <div className="grid md:grid-cols-3 gap-10 mb-10">
+            <div>
+              <div className="flex items-center gap-2 font-bold text-xl mb-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sun text-sun-foreground">
+                  <Sprout className="h-5 w-5" />
+                </span>
+                GaiaThinker
+              </div>
+              <p className="text-sm text-background/70">
+                A learning experience by <a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="text-sun hover:underline">Gaialink Intelligence Systems Inc.</a> — building thoughtful tools for environmental learning.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-3 text-sun">References</h3>
+              <ul className="space-y-1.5 text-sm text-background/70">
+                <li>BC Ministry of Education K–12 Curriculum</li>
+                <li>BC Climate Change Accountability Report</li>
+                <li>City of New Westminster — Seven Bold Steps</li>
+                <li>First Peoples Principles of Learning (FNESC)</li>
+                <li>PhET Interactive Simulations</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-3 text-sun">Connect</h3>
+              <ul className="space-y-1.5 text-sm text-background/70">
+                <li><a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="hover:text-background transition">gaialink.ca ↗</a></li>
+                <li>Designed for the New Westminster School District (SD40)</li>
+                <li>BC curriculum aligned · 2024</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-background/10 pt-6 text-xs text-background/60 flex flex-wrap justify-between gap-3">
+            <span>© {new Date().getFullYear()} Gaialink Intelligence Systems Inc. All rights reserved.</span>
+            <span>GaiaThinker™</span>
+          </div>
         </div>
       </footer>
     </main>
