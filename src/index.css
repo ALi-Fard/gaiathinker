@@ -8,8 +8,24 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 150 30% 98%;
+    --foreground: 200 30% 12%;
+
+    --forest: 155 45% 25%;
+    --forest-foreground: 150 30% 98%;
+    --ocean: 198 70% 38%;
+    --ocean-foreground: 0 0% 100%;
+    --glacier: 195 55% 88%;
+    --glacier-foreground: 200 40% 18%;
+    --ember: 18 85% 55%;
+    --ember-foreground: 0 0% 100%;
+    --sun: 42 95% 58%;
+    --sun-foreground: 30 50% 15%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(155 50% 22%) 0%, hsl(198 70% 35%) 60%, hsl(195 60% 55%) 100%);
+    --gradient-card: linear-gradient(160deg, hsl(0 0% 100%) 0%, hsl(150 30% 97%) 100%);
+    --shadow-soft: 0 4px 20px -8px hsl(200 40% 20% / 0.15);
+    --shadow-glow: 0 10px 40px -10px hsl(198 70% 38% / 0.35);
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -101,5 +117,18 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+
+  h1, h2, h3, h4 {
+    font-family: 'Fraunces', Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-card { background: var(--gradient-card); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
 }
