@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClimateExplorer } from "@/components/ClimateExplorer";
-import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2 } from "lucide-react";
+import { ClimateGame } from "@/components/ClimateGame";
+import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout } from "lucide-react";
 
 const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) => (
   <section id={id} className="py-16 md:py-24">
@@ -18,6 +19,24 @@ const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string
 const Index = () => {
   return (
     <main className="min-h-screen">
+      {/* Top brand nav */}
+      <nav className="absolute top-0 left-0 right-0 z-20">
+        <div className="container max-w-6xl flex items-center justify-between py-5 text-white">
+          <a href="#" className="flex items-center gap-2 font-bold text-lg tracking-tight">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur border border-white/20">
+              <Sprout className="h-5 w-5" />
+            </span>
+            <span>GaiaThinker</span>
+          </a>
+          <div className="hidden sm:flex items-center gap-6 text-sm text-white/80">
+            <a href="#explorer" className="hover:text-white transition">Explorer</a>
+            <a href="#game" className="hover:text-white transition">Game</a>
+            <a href="#goals" className="hover:text-white transition">Educators</a>
+            <a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">gaialink.ca ↗</a>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero */}
       <header className="relative overflow-hidden">
         <img
@@ -28,22 +47,22 @@ const Index = () => {
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-forest/85 via-ocean/70 to-forest/40" />
-        <div className="relative container max-w-6xl py-24 md:py-36 text-white">
+        <div className="relative container max-w-6xl pt-32 pb-24 md:pt-40 md:pb-36 text-white">
           <Badge className="bg-white/15 hover:bg-white/15 text-white backdrop-blur border-white/20 mb-6">
-            <MapPin className="h-3.5 w-3.5 mr-1.5" /> New Westminster School District · Grades 9–12
+            <MapPin className="h-3.5 w-3.5 mr-1.5" /> GaiaThinker · New Westminster SD · Grades 9–12
           </Badge>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] max-w-4xl">
             Our Changing Climate: A British Columbia Story
           </h1>
           <p className="mt-6 text-lg md:text-xl max-w-2xl text-white/90">
-            An interactive secondary science lesson exploring the causes, impacts, and solutions to climate change — grounded in the places, people, and ecosystems of BC.
+            An interactive secondary science lesson and game exploring the causes, impacts, and solutions to climate change — grounded in the places, people, and ecosystems of BC.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" className="bg-white text-forest hover:bg-white/90" asChild>
               <a href="#explorer">Start the Activity</a>
             </Button>
-            <Button size="lg" variant="outline" className="bg-transparent border-white/40 text-white hover:bg-white/10" asChild>
-              <a href="#goals">For Educators</a>
+            <Button size="lg" className="bg-sun text-sun-foreground hover:bg-sun/90" asChild>
+              <a href="#game"><Gamepad2 className="mr-2 h-4 w-4" /> Play the Game</a>
             </Button>
           </div>
           <div className="mt-10 flex flex-wrap gap-6 text-sm text-white/80">
@@ -107,6 +126,20 @@ const Index = () => {
         </p>
         <ClimateExplorer />
       </Section>
+
+      {/* Game */}
+      <section id="game" className="bg-gradient-hero py-16 md:py-24 text-white">
+        <div className="container max-w-5xl">
+          <Badge className="bg-white/15 hover:bg-white/15 text-white backdrop-blur border-white/20 mb-4">
+            <Gamepad2 className="h-3.5 w-3.5 mr-1.5" /> GaiaThinker Game
+          </Badge>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 max-w-3xl">Sort it out: Cause, Impact, or Solution?</h2>
+          <p className="text-lg text-white/85 mb-10 max-w-2xl">
+            Read each real-world climate scenario and decide which category it belongs to. Build streaks, earn points, and learn the why behind every answer.
+          </p>
+          <ClimateGame />
+        </div>
+      </section>
 
       {/* Lesson Activities */}
       <section className="bg-foreground text-background py-16 md:py-24">
@@ -172,21 +205,44 @@ const Index = () => {
         </div>
       </Section>
 
-      {/* References */}
-      <footer className="bg-glacier/30 border-t border-border py-12">
+      {/* References & Brand Footer */}
+      <footer className="bg-foreground text-background py-14">
         <div className="container max-w-6xl">
-          <h3 className="font-semibold text-lg mb-4">References & Further Reading</h3>
-          <ul className="grid md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-            <li>• BC Ministry of Education — Building Student Success K–12 Curriculum</li>
-            <li>• Climate Change Accountability Report (Government of British Columbia)</li>
-            <li>• City of New Westminster — Seven Bold Steps for Climate Action</li>
-            <li>• First Peoples Principles of Learning (FNESC)</li>
-            <li>• BC Council for International Cooperation — Climate Education Resources</li>
-            <li>• PhET Interactive Simulations — Greenhouse Effect</li>
-          </ul>
-          <p className="mt-8 text-xs text-muted-foreground">
-            Designed for educators in the New Westminster School District (SD40). Content reflects BC curriculum as of 2024.
-          </p>
+          <div className="grid md:grid-cols-3 gap-10 mb-10">
+            <div>
+              <div className="flex items-center gap-2 font-bold text-xl mb-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sun text-sun-foreground">
+                  <Sprout className="h-5 w-5" />
+                </span>
+                GaiaThinker
+              </div>
+              <p className="text-sm text-background/70">
+                A learning experience by <a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="text-sun hover:underline">Gaialink Intelligence Systems Inc.</a> — building thoughtful tools for environmental learning.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-3 text-sun">References</h3>
+              <ul className="space-y-1.5 text-sm text-background/70">
+                <li>BC Ministry of Education K–12 Curriculum</li>
+                <li>BC Climate Change Accountability Report</li>
+                <li>City of New Westminster — Seven Bold Steps</li>
+                <li>First Peoples Principles of Learning (FNESC)</li>
+                <li>PhET Interactive Simulations</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-3 text-sun">Connect</h3>
+              <ul className="space-y-1.5 text-sm text-background/70">
+                <li><a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="hover:text-background transition">gaialink.ca ↗</a></li>
+                <li>Designed for the New Westminster School District (SD40)</li>
+                <li>BC curriculum aligned · 2024</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-background/10 pt-6 text-xs text-background/60 flex flex-wrap justify-between gap-3">
+            <span>© {new Date().getFullYear()} Gaialink Intelligence Systems Inc. All rights reserved.</span>
+            <span>GaiaThinker™</span>
+          </div>
         </div>
       </footer>
     </main>
