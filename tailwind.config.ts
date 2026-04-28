@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        forest: { DEFAULT: "hsl(var(--forest))", foreground: "hsl(var(--forest-foreground))" },
+        ocean: { DEFAULT: "hsl(var(--ocean))", foreground: "hsl(var(--ocean-foreground))" },
+        glacier: { DEFAULT: "hsl(var(--glacier))", foreground: "hsl(var(--glacier-foreground))" },
+        ember: { DEFAULT: "hsl(var(--ember))", foreground: "hsl(var(--ember-foreground))" },
+        sun: { DEFAULT: "hsl(var(--sun))", foreground: "hsl(var(--sun-foreground))" },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
