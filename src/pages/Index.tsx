@@ -127,6 +127,20 @@ const Index = () => {
         <ClimateExplorer />
       </Section>
 
+      {/* Game */}
+      <section id="game" className="bg-gradient-hero py-16 md:py-24 text-white">
+        <div className="container max-w-5xl">
+          <Badge className="bg-white/15 hover:bg-white/15 text-white backdrop-blur border-white/20 mb-4">
+            <Gamepad2 className="h-3.5 w-3.5 mr-1.5" /> GaiaThinker Game
+          </Badge>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 max-w-3xl">Sort it out: Cause, Impact, or Solution?</h2>
+          <p className="text-lg text-white/85 mb-10 max-w-2xl">
+            Read each real-world climate scenario and decide which category it belongs to. Build streaks, earn points, and learn the why behind every answer.
+          </p>
+          <ClimateGame />
+        </div>
+      </section>
+
       {/* Lesson Activities */}
       <section className="bg-foreground text-background py-16 md:py-24">
         <div className="container max-w-6xl">
