@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClimateExplorer } from "@/components/ClimateExplorer";
-import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2 } from "lucide-react";
+import { ClimateGame } from "@/components/ClimateGame";
+import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout } from "lucide-react";
 
 const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) => (
   <section id={id} className="py-16 md:py-24">
