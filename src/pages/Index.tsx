@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClimateExplorer } from "@/components/ClimateExplorer";
 import { ClimateGame } from "@/components/ClimateGame";
+import { VoiceAssistant } from "@/components/VoiceAssistant";
 import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout } from "lucide-react";
 
 const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) => (
@@ -245,6 +246,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      <VoiceAssistant />
     </main>
   );
 };
