@@ -246,6 +246,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      <VoiceAssistant />
     </main>
   );
 };
