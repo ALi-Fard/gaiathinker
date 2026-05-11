@@ -5,7 +5,46 @@ import { Button } from "@/components/ui/button";
 import { ClimateExplorer } from "@/components/ClimateExplorer";
 import { ClimateGame } from "@/components/ClimateGame";
 import { VoiceAssistant } from "@/components/VoiceAssistant";
-import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout } from "lucide-react";
+import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout, Music } from "lucide-react";
+import { useState } from "react";
+
+const ClimateMusicButton = () => {
+  const [loading, setLoading] = useState(false);
+  const [musicUrl, setMusicUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const generate = async () => {
+    setLoading(true);
+    setError(null);
+    setMusicUrl(null);
+    try {
+      const res = await fetch("https://hook.us2.make.com/opvsva1ok11m4ew7loae13qfgtsbnvtg", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ music_style: "lofi" }),
+      });
+      if (!res.ok) throw new Error("bad response");
+      const data = await res.json();
+      if (!data.music_url) throw new Error("no url");
+      setMusicUrl(data.music_url);
+    } catch {
+      setError("Music generation is taking longer than expected. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="container max-w-6xl pt-6 flex flex-col items-center gap-3">
+      <Button onClick={generate} disabled={loading} className="bg-ember text-ember-foreground hover:bg-ember/90">
+        <Music className="mr-2 h-4 w-4" /> Generate Climate Music
+      </Button>
+      {loading && <p className="text-sm text-muted-foreground">Generating your music…</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      {musicUrl && <audio src={musicUrl} controls autoPlay className="mt-2" />}
+    </div>
+  );
+};
 
 const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) => (
   <section id={id} className="py-16 md:py-24">
@@ -73,6 +112,8 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      <ClimateMusicButton />
 
       {/* Learning Goals */}
       <Section id="goals" eyebrow="Learning Goals" title="What students will know, do, and understand">
