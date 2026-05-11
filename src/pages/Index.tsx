@@ -104,6 +104,7 @@ const Index = () => {
             <Button size="lg" className="bg-sun text-sun-foreground hover:bg-sun/90" asChild>
               <a href="/gaiathinker-3d.html" target="_blank" rel="noopener noreferrer"><Gamepad2 className="mr-2 h-4 w-4" /> Play the Game</a>
             </Button>
+            <ClimateMusicButton />
           </div>
           <div className="mt-10 flex flex-wrap gap-6 text-sm text-white/80">
             <span>⏱ 75–90 minutes</span>
