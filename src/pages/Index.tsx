@@ -6,50 +6,46 @@ import { ClimateExplorer } from "@/components/ClimateExplorer";
 import { ClimateGame } from "@/components/ClimateGame";
 import { VoiceAssistant } from "@/components/VoiceAssistant";
 import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout, Music } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 
-const LYRICS = [
-  "Verse 1",
-  "Morning light through the cedar trees,",
-  "Breathing in the quiet, gentle breeze.",
-  "Footsteps soft on the forest floor,",
-  "Finding what this world is calling for.",
-  "Pre‑Chorus",
-  "Every choice we make becomes a seed,",
-  "Growing into what the future needs.",
-  "Chorus",
-  "We rise together, hand in hand,",
-  "Guardians of this living land.",
-  "Every voice, every spark, every hope we bring,",
-  "Helps the Earth begin to sing.",
-  "Verse 2",
-  "Rivers carry stories from long ago,",
-  "Mountains shine in a golden glow.",
-  "We're the ones who shape the way,",
-  "Writing what tomorrow's gonna say.",
-  "Chorus",
-  "We rise together, hand in hand,",
-  "Guardians of this living land.",
-  "Every voice, every spark, every hope we bring,",
-  "Helps the Earth begin to sing.",
-  "Outro",
-  "Step by step, we learn and grow —",
-  "This is our home, and it shows.",
+const LYRICS: { time: number; text: string }[] = [
+  { time: 13, text: "Morning light through the cedar trees," },
+  { time: 17, text: "Breathing in the quiet, gentle breeze." },
+  { time: 21, text: "Footsteps soft on the forest floor," },
+  { time: 25, text: "Finding what this world is calling for." },
+  { time: 39, text: "Every choice we make becomes a seed," },
+  { time: 43, text: "Growing into what the future needs." },
+  { time: 48, text: "We rise together, hand in hand," },
+  { time: 52, text: "Guardians of this living land." },
+  { time: 56, text: "Every voice, every spark, every hope we bring," },
+  { time: 60, text: "Helps the Earth begin to sing." },
+  { time: 66, text: "Rivers carry stories from long ago," },
+  { time: 70, text: "Mountains shine in a golden glow." },
+  { time: 74, text: "We're the ones who shape the way," },
+  { time: 78, text: "Writing what tomorrow's gonna say." },
+  { time: 84, text: "We rise together, hand in hand," },
+  { time: 88, text: "Guardians of this living land." },
+  { time: 92, text: "Every voice, every spark, every hope we bring," },
+  { time: 96, text: "Helps the Earth begin to sing." },
+  { time: 102, text: "Step by step, we learn and grow —" },
+  { time: 106, text: "This is our home, and it shows." },
 ];
 
 const ClimateMusicButton = () => {
   const [playing, setPlaying] = useState(false);
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => {
-    if (!playing) return;
-    const t = setInterval(() => setIdx((i) => (i + 1) % LYRICS.length), 4000);
-    return () => clearInterval(t);
-  }, [playing]);
+  const [line, setLine] = useState<string>("");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const start = () => {
-    setIdx(0);
+    setLine("");
     setPlaying(true);
+  };
+
+  const handleTimeUpdate = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    const current = e.currentTarget.currentTime;
+    const active = LYRICS.filter((l) => l.time <= current).pop();
+    const text = active?.text ?? "";
+    setLine((prev) => (prev === text ? prev : text));
   };
 
   return (
@@ -59,10 +55,26 @@ const ClimateMusicButton = () => {
       </Button>
       {playing && (
         <>
-          <audio src="/cedar-sunrise.mp3" controls autoPlay className="mt-1" />
-          <div className="w-full sm:w-[28rem] h-16 flex items-center justify-center text-center px-4">
-            <p key={idx} className="text-white text-base md:text-lg font-medium animate-fade-in">
-              {LYRICS[idx]}
+          <audio
+            ref={audioRef}
+            src="/cedar-sunrise.mp3"
+            controls
+            autoPlay
+            className="mt-1"
+            onTimeUpdate={handleTimeUpdate}
+          />
+          <div className="w-full sm:w-[28rem] min-h-[3.5rem] flex items-center justify-center text-center px-4">
+            <p
+              key={line}
+              className="animate-fade-in font-medium"
+              style={{
+                color: "#E6C200",
+                fontSize: "1.4rem",
+                textAlign: "center",
+                transition: "opacity 0.6s ease",
+              }}
+            >
+              {line}
             </p>
           </div>
         </>
