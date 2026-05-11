@@ -6,42 +6,67 @@ import { ClimateExplorer } from "@/components/ClimateExplorer";
 import { ClimateGame } from "@/components/ClimateGame";
 import { VoiceAssistant } from "@/components/VoiceAssistant";
 import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout, Music } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const LYRICS = [
+  "Verse 1",
+  "Morning light through the cedar trees,",
+  "Breathing in the quiet, gentle breeze.",
+  "Footsteps soft on the forest floor,",
+  "Finding what this world is calling for.",
+  "Pre‑Chorus",
+  "Every choice we make becomes a seed,",
+  "Growing into what the future needs.",
+  "Chorus",
+  "We rise together, hand in hand,",
+  "Guardians of this living land.",
+  "Every voice, every spark, every hope we bring,",
+  "Helps the Earth begin to sing.",
+  "Verse 2",
+  "Rivers carry stories from long ago,",
+  "Mountains shine in a golden glow.",
+  "We're the ones who shape the way,",
+  "Writing what tomorrow's gonna say.",
+  "Chorus",
+  "We rise together, hand in hand,",
+  "Guardians of this living land.",
+  "Every voice, every spark, every hope we bring,",
+  "Helps the Earth begin to sing.",
+  "Outro",
+  "Step by step, we learn and grow —",
+  "This is our home, and it shows.",
+];
 
 const ClimateMusicButton = () => {
-  const [loading, setLoading] = useState(false);
-  const [musicUrl, setMusicUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [idx, setIdx] = useState(0);
 
-  const generate = async () => {
-    setLoading(true);
-    setError(null);
-    setMusicUrl(null);
-    try {
-      const res = await fetch("https://hook.us2.make.com/opvsva1ok11m4ew7loae13qfgtsbnvtg", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ music_style: "lofi" }),
-      });
-      if (!res.ok) throw new Error("bad response");
-      const data = await res.json();
-      if (!data.music_url) throw new Error("no url");
-      setMusicUrl(data.music_url);
-    } catch {
-      setError("Music generation is taking longer than expected. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    if (!playing) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % LYRICS.length), 4000);
+    return () => clearInterval(t);
+  }, [playing]);
+
+  const start = () => {
+    setIdx(0);
+    setPlaying(true);
   };
 
   return (
     <div className="flex flex-col items-start gap-2 w-full sm:w-auto">
-      <Button size="lg" onClick={generate} disabled={loading} className="bg-ember text-ember-foreground hover:bg-ember/90">
+      <Button size="lg" onClick={start} className="bg-ember text-ember-foreground hover:bg-ember/90">
         <Music className="mr-2 h-4 w-4" /> Generate Climate Music
       </Button>
-      {loading && <p className="text-sm text-white/90">Generating your music…</p>}
-      {error && <p className="text-sm text-white">{error}</p>}
-      {musicUrl && <audio src={musicUrl} controls autoPlay className="mt-1" />}
+      {playing && (
+        <>
+          <audio src="/cedar-sunrise.mp3" controls autoPlay className="mt-1" />
+          <div className="w-full sm:w-[28rem] h-16 flex items-center justify-center text-center px-4">
+            <p key={idx} className="text-white text-base md:text-lg font-medium animate-fade-in">
+              {LYRICS[idx]}
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
