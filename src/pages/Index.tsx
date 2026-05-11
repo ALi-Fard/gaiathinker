@@ -35,13 +35,13 @@ const ClimateMusicButton = () => {
   };
 
   return (
-    <div className="container max-w-6xl pt-6 flex flex-col items-center gap-3">
-      <Button onClick={generate} disabled={loading} className="bg-ember text-ember-foreground hover:bg-ember/90">
+    <div className="flex flex-col items-start gap-2 w-full sm:w-auto">
+      <Button size="lg" onClick={generate} disabled={loading} className="bg-ember text-ember-foreground hover:bg-ember/90">
         <Music className="mr-2 h-4 w-4" /> Generate Climate Music
       </Button>
-      {loading && <p className="text-sm text-muted-foreground">Generating your music…</p>}
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      {musicUrl && <audio src={musicUrl} controls autoPlay className="mt-2" />}
+      {loading && <p className="text-sm text-white/90">Generating your music…</p>}
+      {error && <p className="text-sm text-white">{error}</p>}
+      {musicUrl && <audio src={musicUrl} controls autoPlay className="mt-1" />}
     </div>
   );
 };
@@ -104,6 +104,7 @@ const Index = () => {
             <Button size="lg" className="bg-sun text-sun-foreground hover:bg-sun/90" asChild>
               <a href="/gaiathinker-3d.html" target="_blank" rel="noopener noreferrer"><Gamepad2 className="mr-2 h-4 w-4" /> Play the Game</a>
             </Button>
+            <ClimateMusicButton />
           </div>
           <div className="mt-10 flex flex-wrap gap-6 text-sm text-white/80">
             <span>⏱ 75–90 minutes</span>
@@ -112,8 +113,6 @@ const Index = () => {
           </div>
         </div>
       </header>
-
-      <ClimateMusicButton />
 
       {/* Learning Goals */}
       <Section id="goals" eyebrow="Learning Goals" title="What students will know, do, and understand">
