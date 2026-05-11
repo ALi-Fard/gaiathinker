@@ -113,8 +113,6 @@ const Index = () => {
         </div>
       </header>
 
-      <ClimateMusicButton />
-
       {/* Learning Goals */}
       <Section id="goals" eyebrow="Learning Goals" title="What students will know, do, and understand">
         <div className="grid md:grid-cols-3 gap-5">
