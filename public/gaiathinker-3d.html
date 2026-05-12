@@ -1,1709 +1,2677 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GaiaThinker 3D · BC Climate Explorer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>GaiaThinker 3D — BC Climate Field Mission</title>
 <style>
+  /* ==========================================================
+     GAIATHINKER 3D — STYLES
+     Warm, cozy, indie-game HUD. System fonts, generous spacing.
+     ========================================================== */
+  :root {
+    --bg-warm: #1a0f24;
+    --bg-cream: #fbf3e8;
+    --ink: #1a0f24;
+    --ink-soft: #4a3950;
+    --forest: #2d6a32;
+    --forest-soft: #3f8a3f;
+    --ocean: #2a4a8a;
+    --ember: #ff5a3a;
+    --gold: #ff4a96;
+    --gold-soft: #ffb0d0;
+    --magenta: #c64a8e;
+    --purple: #7c5cce;
+    --card-bg: rgba(251, 243, 232, 0.95);
+    --card-border: rgba(124, 92, 206, 0.12);
+    --shadow-card: 0 10px 30px rgba(58, 31, 94, 0.22), 0 2px 8px rgba(58, 31, 94, 0.1);
+  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #0a1410; color: #e8f0ec; }
-  #canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
-
-  .hud-top {
-    position: fixed; top: 16px; left: 16px; right: 16px; z-index: 10;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    gap: 12px; pointer-events: none;
+  html, body {
+    margin: 0; padding: 0; height: 100%; width: 100%;
+    overflow: hidden;
+    background: #3a1f5e;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
-  .hud-card {
-    background: rgba(10, 22, 18, 0.82); backdrop-filter: blur(14px);
-    border: 1px solid rgba(212, 165, 116, 0.3);
-    border-radius: 12px; padding: 12px 16px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  #gameCanvas {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    display: block;
+    outline: none;
+    touch-action: none;
+  }
+
+  /* ---------- HUD CARDS ---------- */
+  .hud {
+    position: fixed;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 13px;
+    line-height: 1.4;
     pointer-events: auto;
+    z-index: 10;
   }
-  .hud-card .label { font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: #d4a574; font-weight: 700; margin-bottom: 4px; }
-  .hud-card .value { font-size: 1.02rem; font-weight: 700; color: #e8f0ec; }
-  .crystals-hud { display: flex; gap: 6px; margin-top: 6px; }
-  .crystal-dot { width: 11px; height: 11px; border-radius: 50%;
-    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
-    transition: all 0.3s ease; }
-  .crystal-dot.resolved { background: #6fb89e; border-color: #8ad0b6; box-shadow: 0 0 10px rgba(111, 184, 158, 0.7); }
+  #hudTopLeft  { top: 14px; left: 14px; min-width: 200px; }
+  #hudTopRight { top: 14px; right: 14px; min-width: 160px; text-align: right; }
+  #hudBottomLeft { bottom: 14px; left: 14px; max-width: 240px; font-size: 12px; color: var(--ink-soft); }
 
-  .controls-hint {
-    position: fixed; bottom: 16px; left: 16px; z-index: 10;
-    background: rgba(10, 22, 18, 0.82); backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px; padding: 9px 14px;
-    font-size: 0.8rem; color: #b8c4be;
-    pointer-events: none;
+  .hud-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    font-weight: 600;
   }
-  .controls-hint kbd {
-    background: rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px;
-    font-family: ui-monospace, monospace; font-size: 0.76rem; margin: 0 1px;
-    border: 1px solid rgba(255,255,255,0.15); color: #e8f0ec;
+  .hud-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .dots { display: flex; gap: 6px; margin-top: 6px; }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(31, 42, 35, 0.15);
+    transition: background 0.4s ease, transform 0.4s ease;
+  }
+  .dot.filled {
+    background: var(--gold);
+    transform: scale(1.15);
+    box-shadow: 0 0 0 2px rgba(255, 74, 150, 0.3), 0 0 10px rgba(255, 74, 150, 0.45);
   }
 
-  .music-toggle {
-    position: fixed; bottom: 16px; right: 16px; z-index: 10;
-    background: rgba(10, 22, 18, 0.82); backdrop-filter: blur(14px);
-    border: 1px solid rgba(212, 165, 116, 0.3);
-    border-radius: 10px; padding: 9px 14px;
-    font-size: 0.8rem; color: #d4a574; font-weight: 600;
-    cursor: pointer; font-family: inherit;
-    display: inline-flex; align-items: center; gap: 8px;
-    transition: filter 0.15s, transform 0.08s;
+  /* ---------- BOTTOM-RIGHT CONTROLS ---------- */
+  #hudBottomRight {
+    position: fixed;
+    bottom: 14px;
+    right: 14px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
   }
-  .music-toggle:hover { filter: brightness(1.15); }
-  .music-toggle:active { transform: translateY(1px); }
-
-  .overlay {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(5, 12, 9, 0.92); backdrop-filter: blur(10px);
+  #moveButtons {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    grid-template-rows: repeat(3, 56px);
+    gap: 6px;
+  }
+  .moveBtn {
+    background: rgba(251, 246, 234, 0.86);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    font-size: 22px;
+    color: var(--ink);
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    transition: transform 0.08s ease, background 0.15s ease;
+    touch-action: none;
+    user-select: none;
+  }
+  .moveBtn:active, .moveBtn.pressed {
+    transform: scale(0.94);
+    background: var(--gold-soft);
+  }
+  .moveBtn.empty { background: transparent; border: none; box-shadow: none; pointer-events: none; }
+
+  #musicToggle {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 8px 14px;
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  /* ---------- INTRO OVERLAY ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(160deg, rgba(15,28,22,0.78), rgba(15,28,22,0.92));
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 24px;
   }
   .overlay-card {
-    background: radial-gradient(ellipse at top, rgba(212, 165, 116, 0.12), transparent 60%),
-      linear-gradient(180deg, rgba(22, 50, 40, 0.96) 0%, rgba(10, 20, 16, 0.96) 100%);
-    border: 1px solid rgba(212, 165, 116, 0.25);
-    border-radius: 16px; padding: 32px;
-    max-width: 540px; width: 100%;
-    box-shadow: 0 25px 70px rgba(0,0,0,0.6);
-    animation: fadeIn 0.4s ease;
+    background: #15211b;
+    color: #f6efe2;
+    border-radius: 22px;
+    padding: 36px 38px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    border: 1px solid rgba(246, 239, 226, 0.08);
   }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  .overlay-card .eyebrow {
-    display: inline-block; font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase;
-    color: #d4a574; font-weight: 700;
-    background: rgba(212, 165, 116, 0.12);
-    padding: 5px 12px; border-radius: 999px;
-    margin-bottom: 14px;
+  .eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(230, 181, 102, 0.12);
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 18px;
   }
-  .overlay-card h1 { margin: 0 0 10px; font-size: 1.7rem; line-height: 1.2; color: #f0e6d6; font-weight: 700; letter-spacing: -0.01em; }
-  .overlay-card p { color: #b8c4be; line-height: 1.55; margin: 0 0 8px; font-size: 0.97rem; }
-  .overlay-card .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
-  .meta-chip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    padding: 5px 11px; border-radius: 999px; font-size: 0.82rem; color: #d8e0db; }
-  .overlay-card button {
-    background: linear-gradient(180deg, #d4a574 0%, #b8895a 100%); color: #2a1408; border: none;
-    padding: 13px 22px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer;
-    width: 100%; transition: transform 0.08s, filter 0.15s, box-shadow 0.15s;
-    box-shadow: 0 6px 16px rgba(212, 165, 116, 0.25); letter-spacing: 0.01em; font-family: inherit;
+  .overlay-card h1 {
+    font-size: 28px;
+    line-height: 1.2;
+    margin: 0 0 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
-  .overlay-card button:hover { filter: brightness(1.06); box-shadow: 0 8px 22px rgba(212, 165, 116, 0.35); }
-  .overlay-card button:active { transform: translateY(1px); }
-  .controls-block {
-    background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px 14px;
-    margin: 10px 0; font-size: 0.86rem; color: #b8c4be;
-    border: 1px solid rgba(255,255,255,0.06);
+  .overlay-card p {
+    margin: 0 0 14px;
+    color: #cdd5cf;
+    font-size: 15px;
+    line-height: 1.55;
   }
-  .controls-block kbd {
-    background: rgba(255,255,255,0.12); padding: 2px 7px; border-radius: 5px;
-    font-family: ui-monospace, monospace; font-size: 0.8rem;
-    border: 1px solid rgba(255,255,255,0.2); color: #e8f0ec;
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+  .chip {
+    background: rgba(122, 184, 90, 0.12);
+    color: #b5dba0;
+    border: 1px solid rgba(122, 184, 90, 0.25);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
   }
+  .primary-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #e6b566 0%, #c8924a 100%);
+    color: #2b1d0a;
+    border: none;
+    padding: 14px 26px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(230, 181, 102, 0.35);
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+  }
+  .primary-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(230, 181, 102, 0.45); }
+  .primary-btn:active { transform: translateY(0); }
 
-  .scenario-modal {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(5, 12, 9, 0.7); backdrop-filter: blur(12px);
-    display: flex; align-items: center; justify-content: center; padding: 20px;
+  /* ---------- SCENARIO POPUP ---------- */
+  #scenarioPopup {
+    position: fixed; inset: 0;
+    background: rgba(15, 28, 22, 0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 90;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 20px;
   }
   .scenario-card {
-    background: linear-gradient(180deg, #fbfbf7 0%, #fff5e8 100%);
-    color: #1a2520; border-radius: 14px; padding: 28px;
-    max-width: 560px; width: 100%; max-height: 88vh; overflow-y: auto;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.6);
-    animation: zoomIn 0.3s ease;
-    border: 1px solid rgba(212, 165, 116, 0.3);
+    background: var(--bg-cream);
+    color: var(--ink);
+    border-radius: 20px;
+    padding: 28px 30px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
   }
-  @keyframes zoomIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
-  .scenario-card .scenario-badge {
-    display: inline-block; padding: 4px 12px; border-radius: 999px;
-    font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;
-    background: rgba(60, 100, 110, 0.1); color: #3c646e; margin-bottom: 12px;
+  .scenario-card h2 {
+    margin: 4px 0 8px;
+    font-size: 22px;
+    line-height: 1.25;
   }
-  .scenario-card h2 { margin: 0 0 8px; font-size: 1.35rem; line-height: 1.3; color: #1a2520; letter-spacing: -0.01em; }
-  .scenario-card .description { color: #4a5552; font-size: 0.94rem; line-height: 1.55; margin: 0 0 18px; }
-  .scenario-card .choices { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-  .scenario-card .choice {
-    background: white; border: 2px solid #e5e9e6; border-radius: 10px;
-    padding: 14px 12px; cursor: pointer;
-    font-weight: 700; font-size: 0.98rem; transition: all 0.15s ease;
-    text-align: center; font-family: inherit;
+  .scenario-card .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: rgba(31,42,35,0.06);
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 4px;
   }
-  .scenario-card .choice[data-c="cause"]    { color: #a8451c; border-bottom: 3px solid #a8451c; }
-  .scenario-card .choice[data-c="impact"]   { color: #2c5f6b; border-bottom: 3px solid #2c5f6b; }
-  .scenario-card .choice[data-c="solution"] { color: #1f5d4a; border-bottom: 3px solid #1f5d4a; }
-  .scenario-card .choice:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-  .scenario-card .choice:disabled { cursor: default; }
-  .scenario-card .choice.correct { background: rgba(31, 93, 74, 0.08); border-color: #1f5d4a; box-shadow: 0 0 0 3px rgba(31, 93, 74, 0.18); }
-  .scenario-card .choice.wrong { background: rgba(168, 69, 28, 0.08); opacity: 0.55; }
-  .scenario-card .choice.dimmed { opacity: 0.4; }
-  .scenario-card .feedback { border-radius: 10px; padding: 16px; margin: 8px 0 14px; border: 2px solid; animation: fadeIn 0.25s ease; }
-  .scenario-card .feedback.correct { background: rgba(31, 93, 74, 0.06); border-color: rgba(31, 93, 74, 0.3); }
-  .scenario-card .feedback.wrong { background: rgba(168, 69, 28, 0.06); border-color: rgba(168, 69, 28, 0.3); }
-  .scenario-card .feedback h3 { margin: 0 0 6px; font-size: 1.02rem; display: flex; gap: 8px; align-items: center; }
-  .scenario-card .feedback .icon-c { color: #1f5d4a; font-weight: 800; font-size: 1.2rem; }
-  .scenario-card .feedback .icon-w { color: #a8451c; font-weight: 800; font-size: 1.2rem; }
-  .scenario-card .feedback p { margin: 4px 0; font-size: 0.86rem; color: #4a5552; line-height: 1.5; }
-  .scenario-card .feedback .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-  .scenario-card .feedback .meta-block { background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px 12px; }
-  .scenario-card .feedback .meta-block .lbl { font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-  .scenario-card .feedback .meta-block.bc .lbl { color: #1f5d4a; }
-  .scenario-card .feedback .meta-block.stat .lbl { color: #2c5f6b; }
-  .scenario-card .feedback .meta-block .val { font-size: 0.83rem; color: #1a2520; line-height: 1.45; }
-  .scenario-card .feedback .meta-block.stat .val { font-weight: 700; }
-  .scenario-card .continue-btn {
-    background: #1f5d4a; color: white; border: none;
-    padding: 12px 22px; border-radius: 10px; font-weight: 700; cursor: pointer;
-    width: 100%; font-size: 0.94rem; font-family: inherit;
-    transition: filter 0.15s;
+  .scenario-card .desc {
+    color: var(--ink-soft);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 12px 0 20px;
   }
-  .scenario-card .continue-btn:hover { filter: brightness(1.12); }
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .choice {
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 14px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.08s ease, filter 0.15s ease;
+    color: white;
+  }
+  .choice:hover { transform: translateY(-2px); }
+  .choice.cause    { background: #c7613a; }
+  .choice.impact   { background: #3a91bf; }
+  .choice.solution { background: #4a8c44; }
+  .choice:disabled { cursor: default; opacity: 0.55; transform: none; }
 
-  .final-overlay {
-    position: fixed; inset: 0; z-index: 150;
-    background: radial-gradient(ellipse at center, rgba(212, 165, 116, 0.18) 0%, transparent 50%),
-      rgba(5, 12, 9, 0.9);
-    backdrop-filter: blur(10px);
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-    animation: fadeIn 0.6s ease;
+  .feedback {
+    margin-top: 22px;
+    padding: 18px 18px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback .verdict {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .feedback .verdict.correct { color: #4a8c44; }
+  .feedback .verdict.wrong   { color: #c7613a; }
+  .feedback .explain {
+    font-size: 14px; line-height: 1.55; color: var(--ink); margin-bottom: 10px;
+  }
+  .feedback .meta {
+    font-size: 12px; line-height: 1.5; color: var(--ink-soft);
+    border-top: 1px dashed rgba(31,42,35,0.12);
+    padding-top: 10px; margin-top: 10px;
+  }
+  .feedback .meta strong { color: var(--ink); }
+
+  /* Rich educational blocks inside the feedback */
+  .feedback .insight {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .feedback .insight .lbl {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+    opacity: 0.85;
+  }
+  .feedback .insight.why {
+    background: rgba(231, 165, 75, 0.10);
+    border-left: 3px solid var(--gold);
+    color: var(--ink);
+  }
+  .feedback .insight.why .lbl { color: #a06a18; }
+  .feedback .insight.act {
+    background: rgba(74, 140, 68, 0.10);
+    border-left: 3px solid var(--forest);
+    color: var(--ink);
+  }
+  .feedback .insight.act .lbl { color: var(--forest); }
+
+  /* Proximity hint that floats above the nearest landmark */
+  #proxHint {
+    position: fixed;
+    pointer-events: none;
+    z-index: 8;
+    display: none;
+    transform: translate(-50%, -100%);
+    background: rgba(31, 42, 35, 0.92);
+    color: #fbf6ea;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    white-space: nowrap;
+    border: 1px solid rgba(246, 239, 226, 0.14);
+    animation: proxFloat 2.4s ease-in-out infinite;
+  }
+  #proxHint .cta {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 9px;
+    background: var(--gold);
+    color: #2a1a06;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+  @keyframes proxFloat {
+    0%, 100% { transform: translate(-50%, -100%); }
+    50%      { transform: translate(-50%, calc(-100% - 6px)); }
+  }
+
+  /* First-time onboarding nudge after intro closes */
+  #onboardTip {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: rgba(31, 42, 35, 0.94);
+    color: #fbf6ea;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 8;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    border: 1px solid rgba(246, 239, 226, 0.14);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #onboardTip.show { opacity: 1; }
+  #onboardTip .gold { color: var(--gold); }
+
+  /* ---------- CELEBRATION OVERLAY (full-screen burst on correct answer) ---------- */
+  #celebration {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 95;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  #celebration.show { display: flex; }
+  #celebration .shout {
+    font-size: clamp(48px, 11vw, 128px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: #fff;
+    text-shadow:
+      0 0 32px rgba(255, 74, 150, 0.85),
+      0 0 64px rgba(255, 74, 150, 0.55),
+      0 6px 0 rgba(124, 92, 206, 0.55);
+    background: linear-gradient(135deg, #ff4a96 0%, #c64ad8 50%, #7c5cce 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: scale(0.4) rotate(-6deg);
+    animation: shoutPop 1.4s cubic-bezier(.2,1.4,.4,1) forwards;
+    text-align: center;
+    padding: 0 20px;
+  }
+  #celebration .shout.wrong {
+    background: linear-gradient(135deg, #ffb84a 0%, #ff7a3a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+      0 0 32px rgba(255, 122, 58, 0.65),
+      0 6px 0 rgba(190, 80, 40, 0.4);
+  }
+  @keyframes shoutPop {
+    0%   { transform: scale(0.4) rotate(-6deg); opacity: 0; }
+    20%  { transform: scale(1.18) rotate(-3deg); opacity: 1; }
+    50%  { transform: scale(1.0) rotate(-2deg); opacity: 1; }
+    85%  { transform: scale(1.0) rotate(-2deg); opacity: 1; }
+    100% { transform: scale(1.05) rotate(-2deg); opacity: 0; }
+  }
+
+  /* Confetti dots that fly out behind the shout */
+  .confetti {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: confettiFly 1.6s cubic-bezier(.15,.7,.3,1) forwards;
+  }
+  @keyframes confettiFly {
+    0%   { transform: translate(0,0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--cx), var(--cy)) rotate(var(--cr)); opacity: 0; }
+  }
+
+  /* Score chip pop when points are awarded */
+  #scorePop {
+    position: fixed;
+    top: 22px;
+    right: 90px;
+    z-index: 12;
+    pointer-events: none;
+    font-weight: 800;
+    font-size: 22px;
+    color: #ff4a96;
+    text-shadow: 0 2px 12px rgba(255, 74, 150, 0.5);
+    opacity: 0;
+    transform: translateY(0);
+  }
+  #scorePop.show {
+    animation: scorePopAnim 1.1s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  @keyframes scorePopAnim {
+    0%   { opacity: 0; transform: translateY(8px) scale(0.7); }
+    25%  { opacity: 1; transform: translateY(-2px) scale(1.15); }
+    100% { opacity: 0; transform: translateY(-28px) scale(1.0); }
+  }
+
+  /* Milestone toast that slides up from the bottom on key moments */
+  #milestone {
+    position: fixed;
+    left: 50%;
+    bottom: 88px;
+    transform: translate(-50%, 30px);
+    z-index: 9;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(124,92,206,0.95), rgba(198,74,142,0.95));
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: 0 12px 30px rgba(124, 92, 206, 0.45);
+    border: 1px solid rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.5s cubic-bezier(.2,.8,.3,1);
+  }
+  #milestone.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .close-btn {
+    margin-top: 16px;
+    background: var(--ink);
+    color: var(--bg-cream);
+    border: none;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  /* ---------- FINAL SCREEN ---------- */
+  #finalScreen {
+    position: fixed; inset: 0;
+    background: linear-gradient(160deg, rgba(15,28,22,0.86), rgba(15,28,22,0.96));
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 110;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 24px;
   }
   .final-card {
-    background: linear-gradient(180deg, rgba(22, 50, 40, 0.96) 0%, rgba(10, 20, 16, 0.96) 100%);
-    border: 1px solid rgba(212, 165, 116, 0.4);
-    border-radius: 16px; padding: 32px; max-width: 520px; width: 100%;
-    text-align: center; box-shadow: 0 30px 90px rgba(0,0,0,0.6);
+    background: #15211b;
+    color: #f6efe2;
+    border-radius: 22px;
+    padding: 38px;
+    max-width: 560px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
   }
-  .final-card .medal { font-size: 3rem; margin-bottom: 10px; }
-  .final-card .eyebrow {
-    display: inline-block; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #d4a574; font-weight: 700;
-    background: rgba(212, 165, 116, 0.15);
-    padding: 4px 12px; border-radius: 999px; margin-bottom: 10px;
+  .medal { font-size: 60px; margin-bottom: 6px; line-height: 1; }
+  .final-card h2 { margin: 8px 0 6px; font-size: 28px; }
+  .tier { color: var(--gold); font-weight: 700; letter-spacing: 0.04em; margin-bottom: 18px; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px 0; }
+  .stat-box {
+    background: rgba(246, 239, 226, 0.05);
+    border: 1px solid rgba(246, 239, 226, 0.1);
+    border-radius: 12px;
+    padding: 14px 8px;
   }
-  .final-card h1 { margin: 0 0 12px; font-size: 1.85rem; color: #f0e6d6; letter-spacing: -0.01em; }
-  .final-card p { color: #b8c4be; line-height: 1.55; margin: 6px 0; font-size: 0.96rem; }
-  .final-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 18px 0; }
-  .final-stat { background: rgba(0,0,0,0.35); border-radius: 10px; padding: 12px; border: 1px solid rgba(255,255,255,0.06); }
-  .final-stat .v { font-size: 1.55rem; font-weight: 800; color: #d4a574; }
-  .final-stat .l { font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: #8c9590; font-weight: 600; margin-top: 4px; }
-  .final-card button {
-    background: linear-gradient(180deg, #d4a574 0%, #b8895a 100%); color: #2a1408; border: none;
-    padding: 12px 22px; border-radius: 10px; font-weight: 700; font-size: 0.98rem; cursor: pointer;
-    margin: 4px 4px 0; font-family: inherit; transition: filter 0.15s;
+  .stat-box .n { font-size: 22px; font-weight: 800; color: var(--gold); }
+  .stat-box .l { font-size: 11px; color: #cdd5cf; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+  .reflection {
+    background: rgba(122, 184, 90, 0.08);
+    border-left: 3px solid var(--forest-soft);
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin: 18px 0 22px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #cdd5cf;
+    text-align: left;
   }
-  .final-card button.secondary { background: transparent; color: #d4a574; border: 2px solid #d4a574; }
-  .final-card button:hover { filter: brightness(1.1); }
-
-  .loading {
-    position: fixed; inset: 0; z-index: 999;
-    background: #0a1410;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #b8c4be;
-  }
-  .loading .spin {
-    width: 40px; height: 40px;
-    border: 3px solid rgba(212, 165, 116, 0.2); border-top-color: #d4a574;
-    border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 14px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .hidden { display: none !important; }
+  .reflection em { color: #f6efe2; font-style: normal; font-weight: 600; }
 
   @media (max-width: 600px) {
-    .scenario-card .choices { grid-template-columns: 1fr; }
-    .controls-hint { font-size: 0.74rem; padding: 8px 10px; }
-    .hud-card { padding: 10px 14px; }
-    .hud-card .value { font-size: 0.92rem; }
-    .final-card h1 { font-size: 1.4rem; }
+    #hudTopLeft, #hudTopRight { font-size: 12px; padding: 10px 12px; }
+    .overlay-card, .final-card, .scenario-card { padding: 24px 22px; }
+    .overlay-card h1 { font-size: 22px; }
+    #moveButtons { grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
+    .moveBtn { font-size: 18px; border-radius: 12px; }
   }
 </style>
 </head>
 <body>
 
-<div class="loading" id="loading">
-  <div class="spin"></div>
-  <div>Loading the BC coast at dawn…</div>
-</div>
+<canvas id="gameCanvas" tabindex="0"></canvas>
 
-<canvas id="canvas" tabindex="0"></canvas>
-
-<div class="hud-top hidden" id="hud">
-  <div class="hud-card">
-    <div class="label">Climate Field Report</div>
-    <div class="value"><span id="resolved-count">0</span> of <span id="total-count">5</span> resolved</div>
-    <div class="crystals-hud" id="crystals-dots"></div>
-  </div>
-  <div class="hud-card">
-    <div class="label">Restoration</div>
-    <div class="value">⚡ <span id="score">0</span></div>
+<!-- ============ HUD ============ -->
+<div id="hudTopLeft" class="hud">
+  <div class="hud-title">Climate Field Report</div>
+  <div class="hud-value"><span id="resolvedCount">0</span> of 5 resolved</div>
+  <div class="dots" id="dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
   </div>
 </div>
 
-<div class="controls-hint hidden" id="controls-hint">
-  <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows to walk · <kbd>Click</kbd> any glowing report
+<div id="hudTopRight" class="hud">
+  <div class="hud-title">Restoration</div>
+  <div class="hud-value"><span id="score">0</span> pts</div>
 </div>
 
-<button class="music-toggle hidden" id="music-toggle" onclick="toggleMusic()" aria-label="Toggle music">
-  <span id="music-icon">🔊</span> <span id="music-label">Music: On</span>
-</button>
+<div id="hudBottomLeft" class="hud">
+  <strong>WASD / Arrows</strong> to walk · <strong>Click</strong> a landmark to investigate
+</div>
 
+<!-- Floating in-world hint that follows the nearest landmark when player is close -->
+<div id="proxHint">
+  <span id="proxHintText">Landmark</span>
+  <span class="cta">Click to investigate</span>
+</div>
+
+<!-- Onboarding nudge shown briefly after the intro closes -->
+<div id="onboardTip">
+  Walk toward a <span class="gold">glowing ▼ marker</span> · click it to investigate
+</div>
+
+<!-- Celebration overlay: huge bouncy shout + confetti -->
+<div id="celebration">
+  <div class="shout" id="celebrationShout">FACTS!</div>
+</div>
+
+<!-- Score pop near the top-right HUD when points are awarded -->
+<div id="scorePop">+20</div>
+
+<!-- Milestone toast for big moments ("Halfway there", "One more", etc.) -->
+<div id="milestone">—</div>
+
+<div id="hudBottomRight">
+  <div id="moveButtons">
+    <div class="moveBtn empty"></div>
+    <div class="moveBtn" data-dir="up">▲</div>
+    <div class="moveBtn empty"></div>
+    <div class="moveBtn" data-dir="left">◀</div>
+    <div class="moveBtn empty"></div>
+    <div class="moveBtn" data-dir="right">▶</div>
+    <div class="moveBtn empty"></div>
+    <div class="moveBtn" data-dir="down">▼</div>
+    <div class="moveBtn empty"></div>
+  </div>
+  <button id="musicToggle">🔊 Music: On</button>
+</div>
+
+<!-- ============ INTRO OVERLAY ============ -->
 <div class="overlay" id="intro">
   <div class="overlay-card">
-    <div class="eyebrow">GaiaThinker · 3D Field Mission</div>
-    <h1>The BC coast. First light. You're collecting climate data.</h1>
-    <p>Five climate stories live on this island. Some are <strong>real BC landmarks you can find</strong> — a SkyTrain on its track, a Coastal Guardian longhouse. Others appear as glowing field markers.</p>
-    <p>Walk up and click any of them. Decide: is this a <strong style="color:#d4a574;">cause</strong>, an <strong style="color:#9ec8d0;">impact</strong>, or a <strong style="color:#7cc9a8;">solution</strong> to climate change? The landscape responds to what you learn.</p>
-    <div class="meta">
-      <span class="meta-chip">⏱ 5–8 min</span>
-      <span class="meta-chip">🎯 5 stories</span>
-      <span class="meta-chip">🏔 Real BC places</span>
+    <span class="eyebrow">GaiaThinker · 3D Field Mission</span>
+    <h1>The BC coast. First light.<br>You're collecting climate data.</h1>
+    <p>You're a young field researcher dropped onto a small stretch of BC coastline. Five things have actually happened — or are happening — out here. Some are <strong>causes</strong> of climate change, some are <strong>impacts</strong> being felt right now, and some are real <strong>solutions</strong> being built by communities across BC.</p>
+    <p>Your job: walk the island, click each glowing marker, read what's going on, and classify it. Every correct read clears a little more fog. This isn't a quiz — it's a way to see how the pieces fit together.</p>
+    <p style="color:var(--ink); font-size:13.5px;"><strong>A note before you start:</strong> this is your decade. Whatever your generation does — or doesn't do — about these five things will shape every coastline on this map. We're not going to pretend that's small.</p>
+    <div class="chips">
+      <span class="chip">BC Grades 9–12</span>
+      <span class="chip">Systems thinking</span>
+      <span class="chip">First Peoples Principles</span>
+      <span class="chip">~8 min play</span>
     </div>
-    <div class="controls-block">
-      <strong>How to play:</strong> <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or arrow keys to walk. <kbd>Click</kbd> any landmark or glowing marker to investigate. After starting, click on the green grass once to give the game keyboard focus.
-    </div>
-    <button onclick="startGame()">Begin field mission</button>
+    <button class="primary-btn" id="startBtn">Begin field mission →</button>
   </div>
 </div>
 
-<div class="scenario-modal hidden" id="scenario-modal">
-  <div class="scenario-card" id="scenario-card"></div>
+<!-- ============ SCENARIO POPUP ============ -->
+<div id="scenarioPopup">
+  <div class="scenario-card">
+    <span class="tag" id="scenarioTag">Scenario</span>
+    <h2 id="scenarioTitle">—</h2>
+    <div class="desc" id="scenarioDesc">—</div>
+    <div class="choices">
+      <button class="choice cause"    data-choice="cause">Cause</button>
+      <button class="choice impact"   data-choice="impact">Impact</button>
+      <button class="choice solution" data-choice="solution">Solution</button>
+    </div>
+    <div class="feedback" id="feedback">
+      <div class="verdict" id="verdict">—</div>
+      <div class="explain" id="explain">—</div>
+      <div class="meta" id="meta">—</div>
+      <div class="insight why">
+        <span class="lbl">Why this matters to you</span>
+        <span id="whyText">—</span>
+      </div>
+      <div class="insight act">
+        <span class="lbl">What you can actually do</span>
+        <span id="actText">—</span>
+      </div>
+      <button class="close-btn" id="closeBtn">Continue exploring</button>
+    </div>
+  </div>
 </div>
 
-<div class="final-overlay hidden" id="final"></div>
+<!-- ============ FINAL SCREEN ============ -->
+<div id="finalScreen">
+  <div class="final-card">
+    <div class="medal" id="medal">🌱</div>
+    <h2>The fog has lifted.</h2>
+    <div class="tier" id="tierLabel">Climate Apprentice</div>
+    <p style="color:#cdd5cf;font-size:15px;line-height:1.55;margin:0;">
+      You walked the coast. You sorted what you saw. You learned what the data is already telling us.
+    </p>
+    <div class="stat-row">
+      <div class="stat-box"><div class="n" id="fScore">0</div><div class="l">Points</div></div>
+      <div class="stat-box"><div class="n" id="fCorrect">0/5</div><div class="l">Correct</div></div>
+      <div class="stat-box"><div class="n" id="fSites">5</div><div class="l">Sites</div></div>
+    </div>
+    <div class="reflection">
+      <em>Reflection — First Peoples Principles of Learning:</em>
+      Learning involves recognizing the consequences of one's actions. The island cleared because you
+      paid attention. The real BC won't — unless your generation pays attention the same way.
+      What's <strong>one</strong> action you'll actually take this month — at school, at home, or with
+      friends — knowing what you now know about BC's climate story?
+    </div>
+    <button class="primary-btn" id="restartBtn">Replay the field mission</button>
+  </div>
+</div>
 
+<!-- ============ THREE.JS ============ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script>
-// ====================== SCENARIO DATA ======================
+'use strict';
+
+/* ============================================================
+   SCENARIO DATA — 5 real BC climate landmarks
+   ============================================================ */
 const SCENARIOS = [
-  { id: "heatdome", title: "The 2021 heat dome killing hundreds of British Columbians", description: "A record-shattering heat wave pushed Lytton to 49.6°C before the village burned the next day.", category: "impact", bcConnection: "BC's deadliest weather disaster killed 619 people — most in their homes without air conditioning.", explanation: "Climate scientists determined this heat dome was virtually impossible without human-caused warming. It's a consequence, not a cause.", statistic: "619 deaths · Lytton hit 49.6°C", crystalPos: [11, 0, -7] },
-  { id: "salmon", title: "Fraser River sockeye runs collapsing", description: "Warmer rivers stress salmon, and recent runs have been the smallest on record.", category: "impact", bcConnection: "The Big Bar landslide and warming Fraser temperatures devastated sockeye — a crisis for First Nations.", explanation: "Salmon need cold, oxygen-rich water. Climate-driven heat pushes river temperatures past lethal thresholds.", statistic: "2020 sockeye return: 290,000 (vs. 4M+ historic)", crystalPos: [-13, 0, 4] },
-  { id: "lng", title: "Expanding LNG extraction and export from Kitimat", description: "Producing and shipping liquefied natural gas releases CO₂ and methane leaks.", category: "cause", bcConnection: "LNG Canada in Kitimat is one of the largest industrial emissions sources in BC.", explanation: "Even though natural gas burns cleaner than coal, methane leaks across the supply chain make its full climate footprint significant.", statistic: "Methane traps 80× more heat than CO₂ over 20 years", crystalPos: [14, 0, 11] },
-  { id: "transit", title: "Expanding SkyTrain and electric bus networks", description: "Public transit moves more people per unit of energy and cuts tailpipe emissions.", category: "solution", bcConnection: "The Surrey-Langley SkyTrain extension and electric bus rollout are flagship low-carbon projects.", explanation: "Shifting trips from cars to electric transit is a classic, evidence-based mitigation solution.", statistic: "TransLink moves 1M+ trips per day on clean electricity", crystalPos: [-8, 0, -14] },
-  { id: "indigenous", title: "Indigenous-led Guardian stewardship programs", description: "Coastal Guardian Watchmen monitor ecosystems using traditional knowledge and modern science.", category: "solution", bcConnection: "The Coastal Guardian Watchmen on BC's Central and North Coasts protect forests, salmon, and shorelines.", explanation: "Indigenous-led stewardship consistently produces better biodiversity and carbon outcomes — a solution rooted in millennia of knowledge.", statistic: "Indigenous-managed lands hold ≈80% of global biodiversity", crystalPos: [2, 0, 14] },
+  {
+    id: 'skytrain',
+    title: 'Expanding SkyTrain and electric bus networks',
+    hint: 'Elevated rail · Metro Vancouver',
+    desc: 'Across Metro Vancouver, the rail network keeps growing. Cars produce roughly a third of BC\'s emissions — every trip that shifts off the highway is a small win for the atmosphere.',
+    answer: 'solution',
+    explain: 'This is a climate SOLUTION. Electrified mass transit pulls riders out of single-occupancy vehicles, which are BC\'s single largest source of greenhouse gas emissions.',
+    connection: 'Surrey-Langley SkyTrain extension',
+    stat: 'TransLink moves 1M+ trips per day on clean BC hydroelectricity.',
+    why: 'You probably know someone whose family is stuck in 2-hour Highway 1 traffic every day. Every new SkyTrain station is a chunk of that traffic — and the carbon that comes with it — taken off the road.',
+    youCanDo: 'Take transit one extra day a week. Push your school board to fund Compass passes for students. Show up at TransLink public consultations — they\'re open to anyone, including you.'
+  },
+  {
+    id: 'longhouse',
+    title: 'Indigenous-led Guardian stewardship programs',
+    hint: 'Coastal Guardians · Land + sea protection',
+    desc: 'Coastal Guardians monitor watersheds, fisheries, archaeological sites, and wildlife along the BC coast — combining traditional knowledge with modern science.',
+    answer: 'solution',
+    explain: 'This is a climate SOLUTION. Indigenous-led land and water stewardship consistently outperforms top-down conservation, and it returns decision-making to people who have managed these ecosystems for thousands of years.',
+    connection: 'Coastal Guardian Watchmen on BC\'s Central and North Coast',
+    stat: 'Indigenous-managed lands hold roughly 80% of the planet\'s remaining biodiversity.',
+    why: 'The most effective climate solutions in BC aren\'t coming from Ottawa or some tech bro in California. They\'re coming from Nations that have run these watersheds for 10,000+ years. Listening to them isn\'t charity — it\'s strategy.',
+    youCanDo: 'Learn whose land your school sits on (your district office knows). Read one BC Indigenous-authored book this term. When a Nation publishes a land-use plan or court ruling, actually read the press release — not just the headline.'
+  },
+  {
+    id: 'salmon',
+    title: 'Fraser River sockeye runs collapsing',
+    hint: 'Salmon stream · Counting weir',
+    desc: 'Warming rivers, landslides, and habitat damage have crashed the once-massive sockeye runs. Salmon are a keystone species — when they fall, forests, bears, eagles, and coastal economies all feel it.',
+    answer: 'impact',
+    explain: 'This is a climate IMPACT. The collapse is a downstream consequence of warming water temperatures, glacier loss, and habitat disruption — all linked to a changing climate.',
+    connection: 'Big Bar landslide and warming river temperatures',
+    stat: '2020 sockeye return: 290,000 fish — versus historic runs over 4 million.',
+    why: 'No salmon means no fishery jobs, no orcas in the Salish Sea, no nutrients in coastal forests, and a piece of BC identity that doesn\'t come back. Your generation will be the first in 10,000 years that might not get to fish sockeye on the Fraser.',
+    youCanDo: 'Volunteer one Saturday with a local streamkeepers group — most school districts run them. Don\'t pour anything other than water down a storm drain (it goes straight to fish). Eat farmed Atlantic salmon less and ask where the fish on your plate came from.'
+  },
+  {
+    id: 'lng',
+    title: 'Expanding LNG extraction and export from Kitimat',
+    hint: 'LNG terminal · Methane export',
+    desc: 'BC is building out major liquefied natural gas infrastructure. Methane — natural gas\'s main component — is a far more potent greenhouse gas than CO₂ in the short term.',
+    answer: 'cause',
+    explain: 'This is a climate CAUSE. Fossil gas extraction, transport, and combustion all add greenhouse gases. Methane leakage along the supply chain is especially damaging in the near term.',
+    connection: 'LNG Canada in Kitimat',
+    stat: 'Methane traps roughly 80× more heat than CO₂ over a 20-year window.',
+    why: 'You\'ll hear politicians call this a "bridge fuel" or "clean energy." Read the label: it\'s methane. Every leak between the wellhead and the tanker hits the atmosphere about 80× harder than CO₂. The math doesn\'t care how it\'s branded.',
+    youCanDo: 'Learn the difference between "natural gas" (marketing term) and "methane" (the actual molecule). Ask candidates in the next BC election where they stand on new LNG approvals. Knowing what to ask is half the work.'
+  },
+  {
+    id: 'heat',
+    title: 'The 2021 heat dome killing hundreds of British Columbians',
+    hint: 'Heat dome zone · 2021',
+    desc: 'In late June 2021, a heat dome parked over BC. Temperatures shattered records, infrastructure failed, and the human cost was staggering — especially for elders and low-income residents.',
+    answer: 'impact',
+    explain: 'This is a climate IMPACT. Climate change makes extreme heat events both more likely and more intense. The 2021 heat dome was BC\'s deadliest weather disaster on record.',
+    connection: 'BC\'s deadliest weather disaster — 619 people died.',
+    stat: 'Lytton hit 49.6°C the day before most of the village burned down.',
+    why: '619 people died in a week. Mostly elders. Mostly alone in apartments without AC. This wasn\'t a natural disaster in the old sense — climate attribution science says human warming made it ~150× more likely. The next one is already being baked in.',
+    youCanDo: 'Know two neighbours who live alone. Check on them when the temperature climbs past 30°C. Push your municipality for cooling centres in your neighbourhood. Save the BC HealthLink number — 8-1-1 — in your phone.'
+  }
 ];
+const SCENARIO_BY_ID = Object.fromEntries(SCENARIOS.map(s => [s.id, s]));
 
-// ====================== THREE.JS SETUP ======================
-let scene, camera, renderer, clock;
-let player, playerVelocity;
-let crystals = [];
-let activeCrystal = null;
-let gameState = { started: false, resolved: 0, score: 0, fogDensity: 0.038 };
-
-const ISLAND_RADIUS = 24;
-const MOVE_SPEED = 0.16;
-
-const COLORS = {
-  fogColor: 0xb8c0bc, islandGrass: 0x4a6b4a, islandDirt: 0x6b5a48,
-  rocks: 0x5a5e62, beach: 0xa89878, ocean: 0x355968, oceanShallow: 0x5a8090,
-  river: 0x6b96a8, cedarDark: 0x2a4a3a, cedarMid: 0x355a44, cedarLight: 0x4a7858,
-  trunk: 0x3e2c1f, trunkLight: 0x5a4530, deadSnag: 0x6b5040,
-  cabinWall: 0x5a4530, cabinRoof: 0x3a2a1e, cabinWindow: 0xd4a574,
-  lighthouseWhite: 0xc8c0b0, lighthouseRed: 0x8a3a28,
-  playerSkin: 0xc89578, playerJacket: 0xb8704a, playerPants: 0x3a4a40,
-  playerPack: 0x4a3a28, playerBoots: 0x2a1f15,
+/* ============================================================
+   GAME STATE
+   ============================================================ */
+const STATE = {
+  resolved: new Set(),
+  score: 0,
+  correct: 0,
+  fogDensity: 0.015,
+  started: false,
+  activeScenario: null,
+  paused: false,
 };
 
-function initScene() {
-  scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(COLORS.fogColor, gameState.fogDensity);
+/* ============================================================
+   THREE.JS SETUP
+   ============================================================ */
+const canvas = document.getElementById('gameCanvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+renderer.outputEncoding = THREE.sRGBEncoding;
 
-  // Custom sky shader — gradient from warm dawn at horizon to cool blue overhead
-  const skyGeo = new THREE.SphereGeometry(80, 32, 16);
-  const skyMat = new THREE.ShaderMaterial({
+const scene = new THREE.Scene();
+
+// Vivid sunset sky — deep purple top, magenta middle, hot coral horizon
+function createSkyDome() {
+  const geom = new THREE.SphereGeometry(200, 32, 16);
+  const mat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     uniforms: {
-      topColor:    { value: new THREE.Color(0x6b8898) },
-      midColor:    { value: new THREE.Color(0xc8b094) },
-      bottomColor: { value: new THREE.Color(0xd4a574) },
-      offset:      { value: 5 },
-      exponent:    { value: 0.7 },
+      topColor:    { value: new THREE.Color('#3a1f5e') },   // deep violet
+      midColor:    { value: new THREE.Color('#c64a8e') },   // magenta
+      bottomColor: { value: new THREE.Color('#ff8a6a') },   // hot coral
+      offset:      { value: 20 },
     },
-    vertexShader: `varying vec3 vWorldPosition;
-      void main() { vec4 wp = modelMatrix * vec4(position, 1.0); vWorldPosition = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
-    fragmentShader: `uniform vec3 topColor; uniform vec3 midColor; uniform vec3 bottomColor;
-      uniform float offset; uniform float exponent;
+    vertexShader: `
+      varying vec3 vWorldPosition;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 midColor;
+      uniform vec3 bottomColor;
+      uniform float offset;
       varying vec3 vWorldPosition;
       void main() {
         float h = normalize(vWorldPosition + offset).y;
+        // Two-stop gradient: horizon -> mid -> top
+        float t = clamp(h, 0.0, 1.0);
         vec3 col;
-        if (h > 0.3) { float t = (h - 0.3) / 0.7; col = mix(midColor, topColor, pow(t, exponent)); }
-        else { float t = max(h, 0.0) / 0.3; col = mix(bottomColor, midColor, t); }
+        if (t < 0.5) {
+          col = mix(bottomColor, midColor, smoothstep(0.0, 0.5, t));
+        } else {
+          col = mix(midColor, topColor, smoothstep(0.5, 1.0, t));
+        }
         gl_FragColor = vec4(col, 1.0);
-      }`,
+      }`
   });
-  scene.add(new THREE.Mesh(skyGeo, skyMat));
-
-  const aspect = window.innerWidth / window.innerHeight;
-  camera = new THREE.PerspectiveCamera(38, aspect, 0.1, 200);
-  camera.position.set(14, 13, 14);
-  camera.lookAt(0, 1.0, 0);
-
-  const canvas = document.getElementById("canvas");
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
-
-  // Golden-hour lighting setup
-  scene.add(new THREE.AmbientLight(0x6a7a82, 0.45));
-  const sun = new THREE.DirectionalLight(0xffd9a8, 1.6);
-  sun.position.set(-25, 14, 18);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.near = 1; sun.shadow.camera.far = 80;
-  sun.shadow.camera.left = -35; sun.shadow.camera.right = 35;
-  sun.shadow.camera.top = 35; sun.shadow.camera.bottom = -35;
-  sun.shadow.bias = -0.0005;
-  scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0x8a9da8, 0x3a4a3a, 0.4));
-  const bounce = new THREE.DirectionalLight(0x7090a8, 0.25);
-  bounce.position.set(20, 4, -10);
-  scene.add(bounce);
-
-  clock = new THREE.Clock();
-
-  buildIsland();
-  buildOcean();
-  buildRiver();
-  buildRocks();
-  buildTrees();
-  buildLandmarks();
-  buildMountains();
-  buildPlayer();
-  buildCrystals();
+  return new THREE.Mesh(geom, mat);
 }
+scene.add(createSkyDome());
 
+// Pink-purple distance fog — sunset haze
+scene.fog = new THREE.FogExp2(0xc885b0, STATE.fogDensity);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 300);
+camera.position.set(16, 15, 16);
+camera.lookAt(0, 0, 0);
+
+// Sun — golden-hour warm, slightly pink
+const sun = new THREE.DirectionalLight(0xffd2a8, 1.25);
+sun.position.set(22, 30, 14);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left   = -45;
+sun.shadow.camera.right  =  45;
+sun.shadow.camera.top    =  45;
+sun.shadow.camera.bottom = -45;
+sun.shadow.camera.near   =  1;
+sun.shadow.camera.far    = 100;
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+
+// Pink-purple sky, deep-green ground hemisphere
+const hemi = new THREE.HemisphereLight(0xe080b8, 0x2e5a32, 0.7);
+scene.add(hemi);
+
+// Warm pink ambient lift
+scene.add(new THREE.AmbientLight(0xffb0c8, 0.18));
+
+// Rim light from the magenta side — pushes pink into shadow edges
+const rim = new THREE.DirectionalLight(0xff5a96, 0.45);
+rim.position.set(-18, 8, -20);
+scene.add(rim);
+
+/* ============================================================
+   MATERIALS — shared, flat-shaded
+   ============================================================ */
+function mat(color, opts) {
+  opts = opts || {};
+  return new THREE.MeshStandardMaterial({
+    color: color,
+    flatShading: true,
+    roughness: opts.roughness != null ? opts.roughness : 0.9,
+    metalness: opts.metalness != null ? opts.metalness : 0.0,
+    emissive: opts.emissive != null ? opts.emissive : 0x000000,
+    emissiveIntensity: opts.emissiveIntensity != null ? opts.emissiveIntensity : 0,
+    transparent: !!opts.transparent,
+    opacity: opts.opacity != null ? opts.opacity : 1.0,
+  });
+}
+const MAT = {
+  grass:     mat(0x3e8a44),                                   // deep saturated green
+  grassDeep: mat(0x2a6a30),                                   // forest floor
+  sand:      mat(0xe8a890),                                   // coral-pink sand (sunset glow)
+  rock:      mat(0x6a5870, { roughness: 1.0 }),               // purple-tinted slate
+  rockDark:  mat(0x4a3a50, { roughness: 1.0 }),
+  trunk:     mat(0x4a2e1a),                                   // deeper cedar
+  trunkDead: mat(0x6a5a48),
+  foliageA:  mat(0x2d6a32),                                   // dark forest
+  foliageB:  mat(0x3f8a3f),                                   // mid leaf
+  foliageC:  mat(0x1d4a26),                                   // shadow side
+  moss:      mat(0x6e9a4a),
+  ocean:     mat(0x2a4a8a, { roughness: 0.4, opacity: 0.92, transparent: true }),   // deep indigo
+  river:     mat(0xa66ad8, { roughness: 0.3, opacity: 0.85, transparent: true }),   // purple river under sunset
+  white:     mat(0xfde8f0),                                   // pink-tinted white
+  concrete:  mat(0xa898a8, { roughness: 1.0 }),               // lavender concrete
+  bcBlue:    mat(0x0089cf),
+  yellow:    mat(0xffd66b, { emissive: 0xffaa33, emissiveIntensity: 0.7 }),
+  warmGlow:  mat(0xff8ac8, { emissive: 0xff4a8a, emissiveIntensity: 0.6 }),
+  red:       mat(0xff4a6a),
+  blackBox:  mat(0x1a1620),
+  cedar:     mat(0x6a3a22),
+  cedarDark: mat(0x4a2a18),
+  totemRed:  mat(0xc0303a),
+  totemGreen:mat(0x2a5e3a),
+  industrial:mat(0x3a3848, { roughness: 0.8 }),               // cool dark purple-grey
+  industrialLight: mat(0x5a586a, { roughness: 0.8 }),
+  steam:     mat(0xf0d8e8, { transparent: true, opacity: 0.7 }),
+  driedEarth:mat(0xa84050),                                   // bruised pink-red
+  driedEarthDark: mat(0x6a2030),
+  fire:      mat(0xff5a3a, { emissive: 0xff3a1a, emissiveIntensity: 1.4 }),
+  smoke:     mat(0xd8b8c8, { transparent: true, opacity: 0.5 }),
+  salmonBody:mat(0xff7a8a, { roughness: 0.5 }),               // brighter pink salmon
+  salmonBack:mat(0x7a5a90, { roughness: 0.5 }),               // purple back
+  beanie:    mat(0x1a1620),
+  hair:      mat(0x2a1f15),
+  skin:      mat(0xd4a884),
+  jacket:    mat(0xff5a3a),                                   // vivid rust-orange — pops against pink sky
+  jacketStripe: mat(0xaa2818),
+  pants:     mat(0x2a3a48),                                   // navy denim
+  boots:     mat(0x2a1810),
+  backpack:  mat(0x3a2820),
+  windowGlow: mat(0xffdc8a, { emissive: 0xffa840, emissiveIntensity: 1.0 }),
+};
+
+/* ============================================================
+   WORLD BUILDERS
+   ============================================================ */
+const world = new THREE.Group();
+scene.add(world);
+
+// --- Island terrain ---
 function buildIsland() {
-  // Slightly displaced disk — central hill, varied surface
-  const islandGeo = new THREE.CylinderGeometry(ISLAND_RADIUS, ISLAND_RADIUS + 1.5, 2, 48, 4);
-  const positions = islandGeo.attributes.position;
-  for (let i = 0; i < positions.count; i++) {
-    const y = positions.getY(i);
+  const radius = 24;
+  const islandGroup = new THREE.Group();
+
+  // Sand ring (slightly larger, slightly shorter)
+  const sand = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius + 1.2, radius + 1.0, 1.6, 64),
+    MAT.sand
+  );
+  sand.position.y = -0.3;
+  sand.receiveShadow = true;
+  islandGroup.add(sand);
+
+  // Grass top with vertex noise
+  const grassGeom = new THREE.CylinderGeometry(radius, radius - 0.5, 1.8, 64, 4);
+  const pos = grassGeom.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
     if (y > 0.5) {
-      const x = positions.getX(i), z = positions.getZ(i);
-      const r = Math.sqrt(x*x + z*z);
-      const noise = (Math.sin(x * 0.3) + Math.cos(z * 0.3)) * 0.3;
-      const hill = Math.max(0, 1.5 - r * 0.08);
-      positions.setY(i, y + noise + hill * 0.3);
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+      const n = Math.sin(x * 0.35) * 0.18 + Math.cos(z * 0.4) * 0.18 + Math.sin((x+z) * 0.2) * 0.12;
+      pos.setY(i, y + n);
     }
   }
-  islandGeo.computeVertexNormals();
-  const islandMat = new THREE.MeshStandardMaterial({ color: COLORS.islandGrass, roughness: 0.95 });
-  const island = new THREE.Mesh(islandGeo, islandMat);
-  island.position.y = -1;
-  island.receiveShadow = true;
-  scene.add(island);
+  grassGeom.computeVertexNormals();
+  const grass = new THREE.Mesh(grassGeom, MAT.grass);
+  grass.position.y = 0.5;
+  grass.castShadow = false;
+  grass.receiveShadow = true;
+  islandGroup.add(grass);
 
-  const beach = new THREE.Mesh(
-    new THREE.CylinderGeometry(ISLAND_RADIUS + 1.8, ISLAND_RADIUS + 3.5, 0.5, 48),
-    new THREE.MeshStandardMaterial({ color: COLORS.beach, roughness: 0.9 })
-  );
-  beach.position.y = -1.7;
-  beach.receiveShadow = true;
-  scene.add(beach);
+  // Darker grass patches
+  for (let i = 0; i < 7; i++) {
+    const r = Math.random() * 15;
+    const a = Math.random() * Math.PI * 2;
+    const patch = new THREE.Mesh(
+      new THREE.CylinderGeometry(2 + Math.random() * 2, 2 + Math.random() * 2, 0.05, 12),
+      MAT.grassDeep
+    );
+    patch.position.set(Math.cos(a) * r, 1.42, Math.sin(a) * r);
+    patch.receiveShadow = true;
+    islandGroup.add(patch);
+  }
+
+  world.add(islandGroup);
 }
 
+// --- Ocean ---
 function buildOcean() {
-  const ocean = new THREE.Mesh(
-    new THREE.PlaneGeometry(300, 300, 1, 1),
-    new THREE.MeshStandardMaterial({ color: COLORS.ocean, roughness: 0.4, metalness: 0.2, transparent: true, opacity: 0.92 })
-  );
+  const oceanGeom = new THREE.PlaneGeometry(400, 400, 1, 1);
+  const ocean = new THREE.Mesh(oceanGeom, MAT.ocean);
   ocean.rotation.x = -Math.PI / 2;
-  ocean.position.y = -2.0;
-  scene.add(ocean);
-
-  const shallow = new THREE.Mesh(
-    new THREE.RingGeometry(ISLAND_RADIUS + 1, ISLAND_RADIUS + 8, 48),
-    new THREE.MeshStandardMaterial({ color: COLORS.oceanShallow, roughness: 0.5, transparent: true, opacity: 0.55 })
-  );
-  shallow.rotation.x = -Math.PI / 2;
-  shallow.position.y = -1.85;
-  scene.add(shallow);
+  ocean.position.y = -0.6;
+  ocean.receiveShadow = false;
+  world.add(ocean);
 }
 
+// --- River meandering across the island ---
+const riverNodes = [];
 function buildRiver() {
-  const riverMat = new THREE.MeshStandardMaterial({ color: COLORS.river, roughness: 0.3, metalness: 0.3, transparent: true, opacity: 0.88 });
-  const path = [[-18, 0, -10], [-10, 0, -6], [-3, 0, 0], [4, 0, 6], [10, 0, 12], [15, 0, 18]];
-  for (let i = 0; i < path.length - 1; i++) {
-    const [x1, , z1] = path[i];
-    const [x2, , z2] = path[i + 1];
-    const len = Math.sqrt((x2-x1)**2 + (z2-z1)**2);
-    const angle = Math.atan2(z2-z1, x2-x1);
-    const seg = new THREE.Mesh(new THREE.PlaneGeometry(len + 0.5, 2.2), riverMat);
+  // Curve points across the island
+  const pts = [
+    new THREE.Vector3(-22, 1.39, -2),
+    new THREE.Vector3(-13, 1.39,  4),
+    new THREE.Vector3(-6,  1.39,  6),
+    new THREE.Vector3(2,   1.39,  3),
+    new THREE.Vector3(9,   1.39,  6),
+    new THREE.Vector3(15,  1.39,  10),
+    new THREE.Vector3(22,  1.39,  12),
+  ];
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const samples = curve.getPoints(60);
+  for (let i = 0; i < samples.length - 1; i++) {
+    const a = samples[i], b = samples[i+1];
+    const len = a.distanceTo(b);
+    const mid = a.clone().add(b).multiplyScalar(0.5);
+    const dir = b.clone().sub(a);
+    const angle = Math.atan2(dir.x, dir.z);
+    const seg = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.0, len * 1.05),
+      MAT.river
+    );
     seg.rotation.x = -Math.PI / 2;
     seg.rotation.z = -angle;
-    seg.position.set((x1+x2)/2, 0.02, (z1+z2)/2);
-    scene.add(seg);
+    seg.position.copy(mid);
+    seg.receiveShadow = true;
+    world.add(seg);
+    riverNodes.push({ mesh: seg, phase: i * 0.4 });
   }
 }
 
-function buildRocks() {
-  const rockMat = new THREE.MeshStandardMaterial({ color: COLORS.rocks, roughness: 0.9, flatShading: true });
-  for (let i = 0; i < 25; i++) {
-    let x, z, r, tries = 0;
-    do {
-      x = (Math.random() - 0.5) * (ISLAND_RADIUS * 1.85);
-      z = (Math.random() - 0.5) * (ISLAND_RADIUS * 1.85);
-      r = Math.sqrt(x*x + z*z); tries++;
-    } while ((r > ISLAND_RADIUS - 0.5 || r < 4) && tries < 15);
-    if (tries >= 15) continue;
+// --- Trees ---
+function buildTree(x, z, scaleMul, dead) {
+  const g = new THREE.Group();
+  const trunkH = 1.4 * scaleMul;
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18 * scaleMul, 0.26 * scaleMul, trunkH, 6),
+    dead ? MAT.trunkDead : MAT.trunk
+  );
+  trunk.position.y = trunkH / 2;
+  trunk.castShadow = true;
+  trunk.receiveShadow = true;
+  g.add(trunk);
+
+  if (!dead) {
+    const foliageMats = [MAT.foliageA, MAT.foliageB, MAT.foliageC];
+    const baseY = trunkH * 0.9;
+    for (let i = 0; i < 3; i++) {
+      const r = (1.0 - i * 0.25) * scaleMul;
+      const h = 1.1 * scaleMul;
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(r, h, 7),
+        foliageMats[(i + Math.floor(Math.random() * 3)) % 3]
+      );
+      cone.position.y = baseY + i * (h * 0.55);
+      cone.castShadow = true;
+      cone.receiveShadow = true;
+      g.add(cone);
+    }
+  }
+
+  g.position.set(x, 1.4, z);
+  g.rotation.y = Math.random() * Math.PI * 2;
+  g.rotation.z = (Math.random() - 0.5) * 0.08;
+  world.add(g);
+  return g;
+}
+
+function buildForest() {
+  const placed = [];
+  const isFarFromRiver = (x, z) => {
+    // Quick approx: stay away from river z band (z 3..12)
+    return !(z > 1 && z < 13 && Math.abs(x) < 20);
+  };
+  const isFarFromLandmark = (x, z) => {
+    const banned = [
+      [-8, -14, 7], [2, 14, 7], [-13, 4, 6], [14, 11, 7], [11, -7, 7]
+    ];
+    for (const b of banned) {
+      const dx = x - b[0], dz = z - b[1];
+      if (dx*dx + dz*dz < b[2]*b[2]) return false;
+    }
+    return true;
+  };
+
+  let attempts = 0;
+  let count = 0;
+  while (count < 62 && attempts < 600) {
+    attempts++;
+    const a = Math.random() * Math.PI * 2;
+    const r = 2 + Math.random() * 20;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    if (!isFarFromRiver(x, z)) continue;
+    if (!isFarFromLandmark(x, z)) continue;
     let tooClose = false;
-    for (const s of SCENARIOS) {
-      if (Math.hypot(x - s.crystalPos[0], z - s.crystalPos[2]) < 3) { tooClose = true; break; }
+    for (const p of placed) {
+      if ((p[0]-x)*(p[0]-x) + (p[1]-z)*(p[1]-z) < 2.5) { tooClose = true; break; }
     }
     if (tooClose) continue;
-    const size = 0.3 + Math.random() * 0.7;
-    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), rockMat);
-    rock.position.set(x, size * 0.4 - 0.1, z);
-    rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    const scale = 0.8 + Math.random() * 0.8;
+    const dead = Math.random() < 0.07;
+    buildTree(x, z, scale, dead);
+    placed.push([x, z]);
+    count++;
+  }
+}
+
+// --- Rocks ---
+function buildRocks() {
+  for (let i = 0; i < 10; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 6 + Math.random() * 16;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    const s = 0.4 + Math.random() * 0.9;
+    const rock = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(s, 0),
+      i % 3 === 0 ? MAT.rockDark : MAT.rock
+    );
+    rock.position.set(x, 1.4 + s * 0.3, z);
+    rock.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
     rock.castShadow = true;
     rock.receiveShadow = true;
-    scene.add(rock);
+    world.add(rock);
   }
 }
 
-function buildTrees() {
-  const trunkMat = new THREE.MeshStandardMaterial({ color: COLORS.trunk, roughness: 0.95, flatShading: true });
-  const trunkLightMat = new THREE.MeshStandardMaterial({ color: COLORS.trunkLight, roughness: 0.95, flatShading: true });
-  const snagMat = new THREE.MeshStandardMaterial({ color: COLORS.deadSnag, roughness: 1.0, flatShading: true });
-  const foliageMats = [
-    new THREE.MeshStandardMaterial({ color: COLORS.cedarDark, roughness: 0.85, flatShading: true }),
-    new THREE.MeshStandardMaterial({ color: COLORS.cedarMid, roughness: 0.85, flatShading: true }),
-    new THREE.MeshStandardMaterial({ color: COLORS.cedarLight, roughness: 0.85, flatShading: true }),
+// --- Fallen mossy logs ---
+function buildLogs() {
+  const spots = [
+    [-4, 11], [8, -3], [-12, -10]
   ];
+  for (const s of spots) {
+    const g = new THREE.Group();
+    const log = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 2.4, 8), MAT.trunk);
+    log.rotation.z = Math.PI / 2;
+    log.castShadow = true;
+    log.receiveShadow = true;
+    g.add(log);
+    const moss = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.4, 8), MAT.moss);
+    moss.rotation.z = Math.PI / 2;
+    moss.position.x = 0.2;
+    g.add(moss);
+    g.position.set(s[0], 1.8, s[1]);
+    g.rotation.y = Math.random() * Math.PI;
+    world.add(g);
+  }
+}
 
-  for (let i = 0; i < 65; i++) {
-    let x, z, r, tries = 0;
-    do {
-      x = (Math.random() - 0.5) * (ISLAND_RADIUS * 1.85);
-      z = (Math.random() - 0.5) * (ISLAND_RADIUS * 1.85);
-      r = Math.sqrt(x*x + z*z); tries++;
-    } while ((r > ISLAND_RADIUS - 1.5 || r < 3) && tries < 20);
-    if (tries >= 20) continue;
-
-    let tooClose = false;
-    for (const s of SCENARIOS) {
-      if (Math.hypot(x - s.crystalPos[0], z - s.crystalPos[2]) < 3) { tooClose = true; break; }
+// --- Distant mountains ---
+function buildMountains() {
+  function ring(distance, scale, mat, count) {
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + Math.random() * 0.1;
+      const r = distance + (Math.random() - 0.5) * 6;
+      const h = (6 + Math.random() * 8) * scale;
+      const rad = (3 + Math.random() * 3) * scale;
+      const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 5), mat);
+      m.position.set(Math.cos(a) * r, h / 2 - 0.5, Math.sin(a) * r);
+      m.rotation.y = Math.random() * Math.PI;
+      scene.add(m);
     }
-    if (tooClose) continue;
-    if (Math.abs(z - (x * 0.6 + 2)) < 1.5) continue; // avoid river
+  }
+  ring(55, 1.0, mat(0x6a4a78, { roughness: 1.0 }), 18);   // nearer: dusky purple
+  ring(75, 1.4, mat(0xa088b8, { roughness: 1.0 }), 22);   // farther: lavender haze
+}
 
-    const tree = new THREE.Group();
-    const isDead = Math.random() < 0.08;
-    const scale = 0.9 + Math.random() * 0.8;
-    const trunkH = (isDead ? 1.4 : 1.0) * scale;
+// --- Lighthouse ---
+function buildLighthouse() {
+  const g = new THREE.Group();
+  // Stone base
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.2, 0.8, 10), MAT.rock);
+  base.position.y = 0.4; base.castShadow = true; base.receiveShadow = true;
+  g.add(base);
+  // White tower
+  const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 3.0, 12), MAT.white);
+  tower.position.y = 0.8 + 1.5; tower.castShadow = true;
+  g.add(tower);
+  // Red stripe
+  const stripe = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.56, 0.4, 12), MAT.red);
+  stripe.position.y = 0.8 + 1.5; g.add(stripe);
+  // Glass / beacon section
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 8), MAT.warmGlow);
+  glass.position.y = 0.8 + 3.0 + 0.3; g.add(glass);
+  // Red cap
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.7, 0.6, 8), MAT.red);
+  cap.position.y = 0.8 + 3.0 + 0.9; cap.castShadow = true;
+  g.add(cap);
+  // Tiny beacon point light
+  const beacon = new THREE.PointLight(0xffd28a, 1.0, 12);
+  beacon.position.y = 0.8 + 3.0 + 0.3;
+  g.add(beacon);
+  g.position.set(-19, 1.4, -10);
+  world.add(g);
+}
 
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.13, 0.22, trunkH, 6),
-      isDead ? snagMat : (Math.random() > 0.5 ? trunkMat : trunkLightMat)
+// --- Cedar cabin ---
+function buildCabin() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.6, 2.0), MAT.cedar);
+  body.position.y = 0.8; body.castShadow = true; body.receiveShadow = true;
+  g.add(body);
+  // Pitched roof
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(2.0, 1.0, 4), MAT.cedarDark);
+  roof.rotation.y = Math.PI / 4;
+  roof.scale.set(1.0, 1.0, 0.78);
+  roof.position.y = 2.1; roof.castShadow = true;
+  g.add(roof);
+  // Windows
+  const w1 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.45), MAT.windowGlow);
+  w1.position.set(0.6, 0.95, 1.005); g.add(w1);
+  const w2 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.45), MAT.windowGlow);
+  w2.position.set(-0.6, 0.95, 1.005); g.add(w2);
+  // Door
+  const door = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.9), MAT.cedarDark);
+  door.position.set(0, 0.55, 1.005); g.add(door);
+  // Chimney
+  const chim = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.8, 0.32), MAT.rock);
+  chim.position.set(0.9, 2.4, 0.2); chim.castShadow = true;
+  g.add(chim);
+
+  // Smoke particles
+  cabinSmoke.position.set(0.9, 2.9, 0.2);
+  cabinSmoke.copyTo(g);
+
+  // Warm window light
+  const warm = new THREE.PointLight(0xffa840, 0.6, 8);
+  warm.position.set(0, 1.0, 1.2);
+  g.add(warm);
+
+  g.position.set(18, 1.4, -10);
+  g.rotation.y = -0.6;
+  world.add(g);
+}
+
+// Smoke particle helper (used by cabin + LNG + longhouse fire)
+function makeSmokeSystem(count, color, opts) {
+  opts = opts || {};
+  const particles = [];
+  const group = new THREE.Group();
+  const material = mat(color, { transparent: true, opacity: 0.6 });
+  for (let i = 0; i < count; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(opts.size || 0.18, 6, 6), material);
+    p.position.set(
+      (Math.random() - 0.5) * (opts.spread || 0.25),
+      Math.random() * (opts.height || 2.0),
+      (Math.random() - 0.5) * (opts.spread || 0.25)
     );
-    trunk.position.y = trunkH / 2;
-    trunk.castShadow = true;
-    tree.add(trunk);
-
-    if (!isDead) {
-      const fMat = foliageMats[Math.floor(Math.random() * foliageMats.length)];
-      const f1 = new THREE.Mesh(new THREE.ConeGeometry(1.0 * scale, 1.5 * scale, 7), fMat);
-      f1.position.y = trunkH + 0.5 * scale; f1.castShadow = true; tree.add(f1);
-      const f2 = new THREE.Mesh(new THREE.ConeGeometry(0.78 * scale, 1.2 * scale, 7), fMat);
-      f2.position.y = trunkH + 1.3 * scale; f2.castShadow = true; tree.add(f2);
-      const f3 = new THREE.Mesh(new THREE.ConeGeometry(0.5 * scale, 0.9 * scale, 7), fMat);
-      f3.position.y = trunkH + 2.0 * scale; f3.castShadow = true; tree.add(f3);
-    } else {
-      for (let b = 0; b < 2; b++) {
-        const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.5, 4), snagMat);
-        branch.position.y = trunkH * 0.7 + b * 0.3;
-        branch.rotation.z = (Math.random() - 0.5) * 1.5;
-        branch.position.x = 0.2;
-        branch.castShadow = true;
-        tree.add(branch);
+    const scaleVal = 0.6 + Math.random() * 0.8;
+    p.scale.setScalar(scaleVal);
+    group.add(p);
+    particles.push({
+      mesh: p,
+      speed: 0.005 + Math.random() * 0.01,
+      maxY: opts.height || 2.0,
+      drift: (Math.random() - 0.5) * 0.004,
+    });
+  }
+  return {
+    group,
+    particles,
+    copyTo(parent) { parent.add(group); },
+    position: group.position,
+    update() {
+      for (const part of particles) {
+        part.mesh.position.y += part.speed;
+        part.mesh.position.x += part.drift;
+        if (part.mesh.position.y > part.maxY) {
+          part.mesh.position.y = 0;
+          part.mesh.position.x = (Math.random() - 0.5) * (opts.spread || 0.25);
+        }
+        const fade = 1 - (part.mesh.position.y / part.maxY);
+        part.mesh.material.opacity = 0.55 * fade;
       }
     }
-    tree.position.set(x, 0, z);
-    tree.rotation.y = Math.random() * Math.PI * 2;
-    tree.rotation.x = (Math.random() - 0.5) * 0.06;
-    tree.rotation.z = (Math.random() - 0.5) * 0.06;
-    scene.add(tree);
-  }
+  };
 }
 
-// ====================== LANDMARKS ======================
-function buildLandmarks() {
-  buildLighthouse(20, -19);
-  buildCabin(-15, -10);
-  buildTotemPole(-2, -8);
-  buildFallenLog(8, 4);
-  buildDock(22, 2);
-  buildSalmonLadder(0, 4);
-}
+const cabinSmoke = makeSmokeSystem(8, 0xcfc8b8, { size: 0.16, height: 1.8, spread: 0.18 });
 
-function buildLighthouse(x, z) {
-  const group = new THREE.Group();
-  const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.0, 1.2, 0.7, 8),
-    new THREE.MeshStandardMaterial({ color: COLORS.rocks, roughness: 0.95, flatShading: true })
-  );
-  base.position.y = 0.35; base.castShadow = true; base.receiveShadow = true; group.add(base);
-
-  const tower = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.55, 0.75, 3.5, 12),
-    new THREE.MeshStandardMaterial({ color: COLORS.lighthouseWhite, roughness: 0.6 })
-  );
-  tower.position.y = 2.45; tower.castShadow = true; group.add(tower);
-
-  const bandMat = new THREE.MeshStandardMaterial({ color: COLORS.lighthouseRed, roughness: 0.5 });
-  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.5, 12), bandMat);
-  band.position.y = 3.0; band.castShadow = true; group.add(band);
-
-  const glass = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.45, 0.55, 0.6, 8),
-    new THREE.MeshStandardMaterial({ color: 0xffe8b8, roughness: 0.2, metalness: 0.4, emissive: 0xd4a574, emissiveIntensity: 0.5 })
-  );
-  glass.position.y = 4.45; group.add(glass);
-
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(0.6, 0.7, 8), bandMat);
-  roof.position.y = 5.1; roof.castShadow = true; group.add(roof);
-
-  const beacon = new THREE.PointLight(0xffd9a0, 0.5, 12);
-  beacon.position.y = 4.45;
-  group.add(beacon);
-
-  group.position.set(x, 0, z);
-  scene.add(group);
-}
-
-function buildCabin(x, z) {
-  const group = new THREE.Group();
-  const wallMat = new THREE.MeshStandardMaterial({ color: COLORS.cabinWall, roughness: 0.95, flatShading: true });
-  const roofMat = new THREE.MeshStandardMaterial({ color: COLORS.cabinRoof, roughness: 0.9, flatShading: true });
-
-  const walls = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.5, 1.8), wallMat);
-  walls.position.y = 0.75; walls.castShadow = true; walls.receiveShadow = true;
-  group.add(walls);
-
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.9, 2.0), roofMat);
-  roof.position.y = 1.8; roof.scale.set(1, 0.8, 1);
-  group.add(roof);
-
-  const peak = new THREE.Mesh(new THREE.ConeGeometry(1.4, 0.7, 4), roofMat);
-  peak.position.y = 2.45; peak.rotation.y = Math.PI / 4;
-  peak.scale.set(1.2, 1, 1.4); peak.castShadow = true;
-  group.add(peak);
-
-  const winMat = new THREE.MeshStandardMaterial({ color: COLORS.cabinWindow, emissive: COLORS.cabinWindow, emissiveIntensity: 0.8, side: THREE.DoubleSide });
-  const win1 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.4), winMat);
-  win1.position.set(1.11, 0.85, 0.4); win1.rotation.y = Math.PI / 2; group.add(win1);
-  const win2 = win1.clone(); win2.position.set(1.11, 0.85, -0.4); group.add(win2);
-
-  const chim = new THREE.Mesh(
-    new THREE.BoxGeometry(0.3, 0.7, 0.3),
-    new THREE.MeshStandardMaterial({ color: COLORS.rocks, roughness: 0.95, flatShading: true })
-  );
-  chim.position.set(0.7, 2.2, 0); chim.castShadow = true; group.add(chim);
-
-  for (let i = 0; i < 3; i++) {
-    const smoke = new THREE.Mesh(
-      new THREE.SphereGeometry(0.18 + i * 0.08, 8, 6),
-      new THREE.MeshBasicMaterial({ color: 0xc0c0c0, transparent: true, opacity: 0.35 - i * 0.08 })
-    );
-    smoke.position.set(0.7, 2.8 + i * 0.4, 0);
-    smoke.userData.smoke = { baseY: 2.8 + i * 0.4, phase: i * 0.5 };
-    group.add(smoke);
-  }
-
-  const warm = new THREE.PointLight(0xd4a574, 0.4, 5);
-  warm.position.set(0, 0.85, 0);
-  group.add(warm);
-
-  group.position.set(x, 0, z);
-  group.rotation.y = Math.PI * 0.15;
-  scene.add(group);
-}
-
-function buildTotemPole(x, z) {
-  const group = new THREE.Group();
-  const heights = [0.7, 0.6, 0.5];
-  const colors = [0x8a3a28, 0x2a4a3a, 0x6b4530];
-  let y = 0;
-  for (let i = 0; i < heights.length; i++) {
-    const sectMat = new THREE.MeshStandardMaterial({ color: colors[i], roughness: 0.92, flatShading: true });
-    const sect = new THREE.Mesh(new THREE.BoxGeometry(0.42, heights[i], 0.42), sectMat);
-    sect.position.y = y + heights[i] / 2; sect.castShadow = true;
-    group.add(sect);
-    y += heights[i];
-    if (i < 2) {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.15), sectMat);
-      wing.position.set(0, y - heights[i] * 0.4, 0);
-      wing.castShadow = true;
-      group.add(wing);
-    }
-  }
-  const top = new THREE.Mesh(
-    new THREE.ConeGeometry(0.3, 0.5, 4),
-    new THREE.MeshStandardMaterial({ color: 0xa84030, roughness: 0.8, flatShading: true })
-  );
-  top.position.y = y + 0.25; top.castShadow = true;
-  group.add(top);
-  group.position.set(x, 0, z);
-  scene.add(group);
-}
-
-function buildFallenLog(x, z) {
-  const logMat = new THREE.MeshStandardMaterial({ color: COLORS.trunkLight, roughness: 0.95, flatShading: true });
-  const log = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 4, 8), logMat);
-  log.position.set(x, 0.35, z);
-  log.rotation.z = Math.PI / 2; log.rotation.y = Math.PI / 5;
-  log.castShadow = true; log.receiveShadow = true;
-  scene.add(log);
-
-  const mossMat = new THREE.MeshStandardMaterial({ color: COLORS.cedarLight, roughness: 1.0 });
-  for (let i = 0; i < 3; i++) {
-    const moss = new THREE.Mesh(new THREE.SphereGeometry(0.18 + Math.random() * 0.1, 8, 5), mossMat);
-    moss.position.set(x + (i - 1) * 1.2, 0.6, z + 0.1);
-    moss.scale.y = 0.5; moss.castShadow = true;
-    scene.add(moss);
-  }
-}
-
-function buildDock(x, z) {
-  const dockMat = new THREE.MeshStandardMaterial({ color: COLORS.trunk, roughness: 0.95 });
-  for (let i = 0; i < 4; i++) {
-    const plank = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.1, 0.4), dockMat);
-    plank.position.set(x + i * 0.5, -1.5, z);
+// --- Wooden dock ---
+function buildDock() {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 0.5), MAT.cedar);
+    plank.position.set(0, 0, i * 0.55);
     plank.castShadow = true; plank.receiveShadow = true;
-    scene.add(plank);
+    g.add(plank);
   }
-  for (let i = 0; i < 2; i++) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 1.2, 6), dockMat);
-    post.position.set(x + i * 1.5, -1.0, z);
-    post.castShadow = true;
-    scene.add(post);
-  }
-}
-
-function buildSalmonLadder(x, z) {
-  const woodMat = new THREE.MeshStandardMaterial({ color: COLORS.trunkLight, roughness: 0.9 });
+  // Pillars
   for (let i = 0; i < 3; i++) {
-    const step = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 1.2), woodMat);
-    step.position.set(x + i * 0.5, 0.05 - i * 0.04, z);
-    step.castShadow = true;
-    scene.add(step);
+    const pile = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 6), MAT.cedarDark);
+    pile.position.set(-0.55, -0.55, i * 1.0);
+    g.add(pile);
+    const pile2 = pile.clone();
+    pile2.position.x = 0.55;
+    g.add(pile2);
   }
+  g.position.set(-2, 0.0, 23.5);
+  g.rotation.y = Math.PI / 2;
+  world.add(g);
 }
 
-function buildMountains() {
-  const farMat = new THREE.MeshStandardMaterial({ color: 0x4a5862, roughness: 1.0, flatShading: true });
-  const veryFarMat = new THREE.MeshStandardMaterial({ color: 0x6a7682, roughness: 1.0, flatShading: true });
-  for (let i = 0; i < 10; i++) {
-    const angle = (i / 10) * Math.PI * 2 + Math.random() * 0.3;
-    const dist = 55 + Math.random() * 10;
-    const x = Math.cos(angle) * dist, z = Math.sin(angle) * dist;
-    const height = 9 + Math.random() * 7;
-    const m = new THREE.Mesh(new THREE.ConeGeometry(5 + Math.random() * 3, height, 5), farMat);
-    m.position.set(x, height / 2 - 2, z);
-    m.rotation.y = Math.random() * Math.PI;
-    scene.add(m);
-  }
-  for (let i = 0; i < 8; i++) {
-    const angle = (i / 8) * Math.PI * 2 + Math.PI * 0.1;
-    const dist = 75 + Math.random() * 12;
-    const x = Math.cos(angle) * dist, z = Math.sin(angle) * dist;
-    const height = 13 + Math.random() * 9;
-    const m = new THREE.Mesh(new THREE.ConeGeometry(7 + Math.random() * 3, height, 5), veryFarMat);
-    m.position.set(x, height / 2 - 2, z);
-    m.rotation.y = Math.random() * Math.PI;
-    scene.add(m);
-  }
+/* ============================================================
+   LANDMARKS — interactive scenarios
+   Each builder returns a group + an invisible hit-box + a glow ring.
+   ============================================================ */
+const landmarks = []; // { id, group, hitbox, glowRing, light, animate(t), pulseT }
+
+function makeGlowRing(radius) {
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(radius * 0.85, radius, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0xff4a96,                    // hot pink, vivid against green
+      transparent: true,
+      opacity: 0.65,
+      side: THREE.DoubleSide,
+    })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.02;
+  return ring;
 }
 
-// ====================== PLAYER ======================
+function makeHitbox(w, h, d) {
+  const m = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  m.position.y = h / 2;
+  return m;
+}
+
+/* Big bouncy hot-pink chevron that hovers above each landmark.
+   - Anchor sets the height in the landmark's local space
+   - Bob group animates up/down + spin
+   - Outer cone (pink, emissive) + inner core (white) for contrast against any sky */
+function makeFloatingArrow(yHeight, tint, accent) {
+  const anchor = new THREE.Group();
+  anchor.position.y = yHeight;
+
+  const bob = new THREE.Group();
+  anchor.add(bob);
+
+  // Large halo disc behind the arrow
+  const halo = new THREE.Mesh(
+    new THREE.RingGeometry(0.8, 1.55, 24),
+    new THREE.MeshBasicMaterial({
+      color: accent || 0xff8ad0,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  halo.rotation.x = -Math.PI / 2;
+  halo.position.y = -0.4;
+  bob.add(halo);
+
+  // The big diamond chevron — bright hot-pink, strongly emissive
+  const coneMat = new THREE.MeshStandardMaterial({
+    color: tint || 0xff3a8a,
+    emissive: tint || 0xff3a8a,
+    emissiveIntensity: 1.1,
+    flatShading: true,
+    roughness: 0.35,
+    metalness: 0.0,
+  });
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.85, 1.7, 4), coneMat);
+  cone.rotation.x = Math.PI;
+  cone.rotation.y = Math.PI / 4;
+  cone.position.y = 0;
+  bob.add(cone);
+
+  // Inner bright core — pure white-pink, ignores fog so it stays vivid at distance
+  const core = new THREE.Mesh(
+    new THREE.ConeGeometry(0.42, 0.85, 4),
+    new THREE.MeshBasicMaterial({ color: 0xfff0f8, fog: false })
+  );
+  core.rotation.x = Math.PI;
+  core.rotation.y = Math.PI / 4;
+  core.position.y = -0.2;
+  bob.add(core);
+
+  // Small point light tinted hot-pink so the arrow visibly lights its surroundings
+  const pinkGlow = new THREE.PointLight(0xff4a96, 0.5, 5);
+  pinkGlow.position.y = -0.4;
+  bob.add(pinkGlow);
+
+  anchor.userData.bob = bob;
+  anchor.userData.cone = cone;
+  anchor.userData.halo = halo;
+  anchor.userData.light = pinkGlow;
+  return anchor;
+}
+
+function attachLandmark(id, group, hitbox, glowRing, light, animate) {
+  group.add(hitbox);
+  group.add(glowRing);
+  if (light) group.add(light);
+
+  // Big hot-pink chevron above each landmark.
+  // y = 9.0 (local) clears the tallest props: SkyTrain track + train, LNG smokestack
+  const arrow = makeFloatingArrow(9.0, 0xff3a8a, 0xff8ad0);
+  group.add(arrow);
+
+  world.add(group);
+  hitbox.userData.landmarkId = id;
+  landmarks.push({
+    id, group, hitbox, glowRing, light, animate, arrow,
+    pulseT: Math.random() * Math.PI * 2,
+    arrowT: Math.random() * Math.PI * 2,
+  });
+}
+
+/* ---------- LANDMARK 1: SkyTrain ---------- */
+function buildSkyTrain() {
+  const g = new THREE.Group();
+  g.position.set(-8, 1.4, -14);
+
+  // Two support pillars
+  for (let i = -1; i <= 1; i += 2) {
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35, 0.45, 3.2, 8),
+      MAT.concrete
+    );
+    pillar.position.set(i * 2.5, 1.6, 0);
+    pillar.castShadow = true; pillar.receiveShadow = true;
+    g.add(pillar);
+  }
+  // Elevated concrete track beam
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 1.4), MAT.concrete);
+  beam.position.y = 3.2; beam.castShadow = true; beam.receiveShadow = true;
+  g.add(beam);
+
+  // Track rails (subtle)
+  for (let i = -1; i <= 1; i += 2) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(8, 0.08, 0.1), MAT.rockDark);
+    rail.position.set(0, 3.45, i * 0.4);
+    g.add(rail);
+  }
+
+  // Train car
+  const train = new THREE.Group();
+  const trainBody = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.9), MAT.bcBlue);
+  trainBody.position.y = 0; trainBody.castShadow = true;
+  train.add(trainBody);
+  const trainTop = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.15, 0.85), MAT.white);
+  trainTop.position.y = 0.42;
+  train.add(trainTop);
+  // Yellow windows along the side
+  for (let i = -2; i <= 2; i++) {
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.28), MAT.yellow);
+    win.position.set(i * 0.45, 0.05, 0.46);
+    train.add(win);
+    const win2 = win.clone();
+    win2.position.z = -0.46;
+    win2.rotation.y = Math.PI;
+    train.add(win2);
+  }
+  train.position.set(0, 3.85, 0);
+  g.add(train);
+
+  // Glow + hitbox
+  const ring = makeGlowRing(3.2);
+  const hitbox = makeHitbox(9, 6, 5);
+  hitbox.position.y = 3;
+  const light = new THREE.PointLight(0x6ec3f0, 0.5, 10);
+  light.position.y = 4;
+
+  attachLandmark('skytrain', g, hitbox, ring, light, (t) => {
+    train.position.x = Math.sin(t * 0.5) * 3.0;
+  });
+}
+
+/* ---------- LANDMARK 2: Coastal Guardian Longhouse ---------- */
+function buildLonghouse() {
+  const g = new THREE.Group();
+  g.position.set(2, 1.4, 14);
+  g.rotation.y = Math.PI;
+
+  // Longhouse main body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.8, 2.6), MAT.cedar);
+  body.position.y = 0.9; body.castShadow = true; body.receiveShadow = true;
+  g.add(body);
+
+  // Pitched roof — use a triangular prism via custom geometry (BoxGeometry + ConeGeometry hybrid)
+  // Simpler: two slanted planes forming a roof
+  const roofMat = MAT.cedarDark;
+  const roofLen = 5.0;
+  const roofW = 1.6;
+  const roofL = new THREE.Mesh(new THREE.PlaneGeometry(roofLen, roofW), roofMat);
+  roofL.position.set(0, 2.25, 0.7);
+  roofL.rotation.x = 0.5;
+  roofL.castShadow = true;
+  g.add(roofL);
+  const roofR = new THREE.Mesh(new THREE.PlaneGeometry(roofLen, roofW), roofMat);
+  roofR.position.set(0, 2.25, -0.7);
+  roofR.rotation.x = -0.5;
+  roofR.castShadow = true;
+  g.add(roofR);
+  // Gable end caps (triangles approximated by thin tilted planes)
+  for (let i = -1; i <= 1; i += 2) {
+    const gable = new THREE.Mesh(new THREE.ConeGeometry(1.4, 0.9, 3), MAT.cedar);
+    gable.rotation.x = Math.PI / 2;
+    gable.rotation.z = i > 0 ? Math.PI / 6 : -Math.PI / 6;
+    gable.position.set(i * 2.25, 2.1, 0);
+    gable.scale.set(1, 1, 0.001);
+    g.add(gable);
+  }
+
+  // Painted formline motif above the door — 3 small boxes red/black
+  const motifColors = [MAT.totemRed, MAT.blackBox, MAT.totemRed];
+  for (let i = 0; i < 3; i++) {
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.08), motifColors[i]);
+    box.position.set(-0.5 + i * 0.5, 1.6, 1.32);
+    g.add(box);
+  }
+  // Door
+  const door = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 1.1), MAT.cedarDark);
+  door.position.set(0, 0.55, 1.305); g.add(door);
+
+  // Totem pole next to longhouse
+  const totem = new THREE.Group();
+  const tSeg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.0, 8), MAT.totemRed);
+  tSeg1.position.y = 0.5;
+  const tSeg2 = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.0, 8), MAT.totemGreen);
+  tSeg2.position.y = 1.5;
+  const tSeg3 = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.0, 8), MAT.cedar);
+  tSeg3.position.y = 2.5;
+  // Decorative bands
+  const band1 = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.08, 8), MAT.blackBox);
+  band1.position.y = 1.0;
+  const band2 = band1.clone(); band2.position.y = 2.0;
+  // Bird cap
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.4, 6), MAT.blackBox);
+  beak.position.y = 3.2;
+  beak.rotation.x = Math.PI / 2;
+  beak.position.z = 0.15;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), MAT.totemRed);
+  head.position.y = 3.1;
+  totem.add(tSeg1, tSeg2, tSeg3, band1, band2, head, beak);
+  totem.position.set(2.6, 0, 1.4);
+  totem.castShadow = true;
+  totem.children.forEach(c => c.castShadow = true);
+  g.add(totem);
+
+  // Fire pit
+  const pit = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.6, 0.25, 8), MAT.rockDark);
+  pit.position.set(-2.6, 0.12, 1.6);
+  pit.castShadow = true; pit.receiveShadow = true;
+  g.add(pit);
+  // Flame
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.7, 6), MAT.fire);
+  flame.position.set(-2.6, 0.55, 1.6);
+  g.add(flame);
+  const flameLight = new THREE.PointLight(0xff8a3a, 1.2, 6);
+  flameLight.position.set(-2.6, 0.8, 1.6);
+  g.add(flameLight);
+
+  // Smoke from fire
+  const fireSmoke = makeSmokeSystem(6, 0xcfc8b8, { size: 0.12, height: 1.6, spread: 0.22 });
+  fireSmoke.group.position.set(-2.6, 0.7, 1.6);
+  g.add(fireSmoke.group);
+
+  // Glow + hitbox
+  const ring = makeGlowRing(3.5);
+  ring.position.set(0, 0.02, 0);
+  const hitbox = makeHitbox(7, 5, 6);
+  hitbox.position.y = 2;
+  const light = new THREE.PointLight(0xffc870, 0.4, 8);
+  light.position.y = 2;
+
+  attachLandmark('longhouse', g, hitbox, ring, light, (t) => {
+    const s = 1.0 + Math.sin(t * 8) * 0.12 + Math.sin(t * 13) * 0.06;
+    flame.scale.set(1.0, s, 1.0);
+    flameLight.intensity = 1.1 + Math.sin(t * 8) * 0.3;
+    fireSmoke.update();
+  });
+}
+
+/* ---------- LANDMARK 3: Salmon Stream ---------- */
+function buildSalmonStream() {
+  const g = new THREE.Group();
+  g.position.set(-13, 1.4, 4);
+
+  // Widened river pool — a darker shallow disc
+  const pool = new THREE.Mesh(
+    new THREE.CylinderGeometry(2.6, 2.6, 0.15, 16),
+    MAT.river
+  );
+  pool.position.y = 0.01;
+  pool.receiveShadow = true;
+  g.add(pool);
+  const poolDeep = new THREE.Mesh(
+    new THREE.CylinderGeometry(2.0, 2.0, 0.1, 16),
+    mat(0x5a9fc2, { roughness: 0.3, opacity: 0.85, transparent: true })
+  );
+  poolDeep.position.y = 0.02;
+  g.add(poolDeep);
+
+  // Wooden counting weir / station
+  const station = new THREE.Group();
+  const platform = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.15, 0.7), MAT.cedar);
+  platform.position.y = 0.5;
+  platform.castShadow = true;
+  station.add(platform);
+  for (let i = -1; i <= 1; i += 2) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 6), MAT.cedarDark);
+    leg.position.set(i * 0.65, 0, 0);
+    station.add(leg);
+    const leg2 = leg.clone();
+    leg2.position.z = 0.3; station.add(leg2);
+    const leg3 = leg.clone();
+    leg3.position.z = -0.3; station.add(leg3);
+  }
+  // Counter post with sign
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.7, 0.08), MAT.cedarDark);
+  post.position.set(0, 1.0, 0.25);
+  station.add(post);
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.32, 0.04), MAT.white);
+  sign.position.set(0, 1.25, 0.27);
+  station.add(sign);
+  station.position.set(2.1, 0, 0.4);
+  g.add(station);
+
+  // Weir poles in water
+  for (let i = -2; i <= 2; i++) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 6), MAT.cedarDark);
+    pole.position.set(i * 0.35, 0.18, -1.5);
+    g.add(pole);
+  }
+
+  // Salmon — each fish leaps in a loop
+  const salmonFishes = [];
+  function makeSalmon() {
+    const f = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), MAT.salmonBody);
+    body.scale.set(1.0, 0.5, 0.35);
+    f.add(body);
+    const back = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), MAT.salmonBack);
+    back.scale.set(1.0, 0.22, 0.36);
+    back.position.y = 0.05;
+    f.add(back);
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.18, 4), MAT.salmonBody);
+    tail.rotation.z = Math.PI / 2;
+    tail.scale.set(1.0, 1.5, 0.3);
+    tail.position.x = -0.22;
+    f.add(tail);
+    return f;
+  }
+  for (let i = 0; i < 4; i++) {
+    const f = makeSalmon();
+    const a = (i / 4) * Math.PI * 2;
+    f.userData.cx = Math.cos(a) * 1.2;
+    f.userData.cz = Math.sin(a) * 1.2;
+    f.userData.phase = Math.random() * Math.PI * 2;
+    g.add(f);
+    salmonFishes.push(f);
+  }
+
+  // Glow + hitbox
+  const ring = makeGlowRing(3.2);
+  ring.position.set(0, 0.04, 0);
+  const hitbox = makeHitbox(7, 4, 7);
+  hitbox.position.y = 1.5;
+  const light = new THREE.PointLight(0x8cd4f0, 0.4, 8);
+  light.position.y = 1.5;
+
+  attachLandmark('salmon', g, hitbox, ring, light, (t) => {
+    for (const f of salmonFishes) {
+      const phase = (t * 0.8 + f.userData.phase) % (Math.PI * 2);
+      const arc = Math.sin(phase);
+      if (arc > 0) {
+        f.position.set(f.userData.cx, arc * 0.8, f.userData.cz);
+        f.rotation.z = Math.cos(phase) * 0.6;
+        f.visible = true;
+      } else {
+        f.visible = false;
+      }
+    }
+    // Slight pool ripple via scale wobble
+    pool.scale.set(1 + Math.sin(t * 1.5) * 0.01, 1, 1 + Math.cos(t * 1.5) * 0.01);
+  });
+}
+
+/* ---------- LANDMARK 4: LNG Industrial Terminal ---------- */
+function buildLNG() {
+  const g = new THREE.Group();
+  g.position.set(14, 1.4, 11);
+  g.rotation.y = -0.4;
+
+  // Main industrial building
+  const main = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.0, 1.8), MAT.industrial);
+  main.position.set(0, 1.0, 0);
+  main.castShadow = true; main.receiveShadow = true;
+  g.add(main);
+  // Smaller annex
+  const annex = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1.4), MAT.industrialLight);
+  annex.position.set(-1.8, 0.7, 0.3);
+  annex.castShadow = true; annex.receiveShadow = true;
+  g.add(annex);
+
+  // Two storage tanks
+  for (let i = 0; i < 2; i++) {
+    const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 1.6, 16), MAT.white);
+    tank.position.set(1.6 + i * 2.1, 0.8, -1.2);
+    tank.castShadow = true; tank.receiveShadow = true;
+    g.add(tank);
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 8, 0, Math.PI*2, 0, Math.PI/2), MAT.industrialLight);
+    top.position.set(1.6 + i * 2.1, 1.6, -1.2);
+    g.add(top);
+  }
+
+  // Smokestack
+  const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.4, 4.0, 10), MAT.industrial);
+  stack.position.set(0.5, 2.0, 0);
+  stack.castShadow = true;
+  g.add(stack);
+  const stackTop = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.2, 10), MAT.blackBox);
+  stackTop.position.set(0.5, 4.05, 0);
+  g.add(stackTop);
+
+  // Blinking warning light
+  const warning = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), mat(0xff3030, { emissive: 0xff3030, emissiveIntensity: 1.5 }));
+  warning.position.set(0.5, 4.2, 0);
+  g.add(warning);
+  const warningLight = new THREE.PointLight(0xff5050, 0.6, 4);
+  warningLight.position.set(0.5, 4.2, 0);
+  g.add(warningLight);
+
+  // Continuous smoke / steam from stack
+  const lngSmoke = makeSmokeSystem(14, 0xffffff, { size: 0.32, height: 3.0, spread: 0.5 });
+  lngSmoke.group.position.set(0.5, 4.1, 0);
+  g.add(lngSmoke.group);
+
+  // Small dock + tanker silhouette extending into ocean
+  const dockBeam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.12, 4.0), MAT.cedar);
+  dockBeam.position.set(2.5, -1.2, 3.0);
+  g.add(dockBeam);
+  for (let i = 0; i < 3; i++) {
+    const pile = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.6, 6), MAT.cedarDark);
+    pile.position.set(2.5, -1.9, 1.5 + i * 1.4);
+    g.add(pile);
+  }
+  const tanker = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 2.5), MAT.blackBox);
+  tanker.position.set(3.6, -1.0, 4.5);
+  g.add(tanker);
+  const tankerCabin = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.6), MAT.industrialLight);
+  tankerCabin.position.set(3.6, -0.55, 5.3);
+  g.add(tankerCabin);
+  const tankerStack = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.5, 6), MAT.industrial);
+  tankerStack.position.set(3.6, -0.15, 5.3);
+  g.add(tankerStack);
+
+  // Glow + hitbox
+  const ring = makeGlowRing(3.8);
+  const hitbox = makeHitbox(9, 6, 7);
+  hitbox.position.y = 3;
+  const light = new THREE.PointLight(0xff8050, 0.5, 10);
+  light.position.set(0, 4, 0);
+
+  attachLandmark('lng', g, hitbox, ring, light, (t) => {
+    lngSmoke.update();
+    const blink = (Math.sin(t * 3) > 0.5) ? 1.0 : 0.15;
+    warning.material.emissiveIntensity = blink * 1.5;
+    warningLight.intensity = blink * 0.8;
+  });
+}
+
+/* ---------- LANDMARK 5: Heat-Damaged Zone ---------- */
+function buildHeatZone() {
+  const g = new THREE.Group();
+  g.position.set(11, 1.4, -7);
+
+  // Cracked earth patch
+  const patch = new THREE.Mesh(
+    new THREE.CircleGeometry(3.0, 24),
+    MAT.driedEarth
+  );
+  patch.rotation.x = -Math.PI / 2;
+  patch.position.y = 0.03;
+  patch.receiveShadow = true;
+  g.add(patch);
+  // Inner darker crack rings
+  for (let i = 0; i < 5; i++) {
+    const crack = new THREE.Mesh(
+      new THREE.RingGeometry(0.4 + i * 0.4, 0.45 + i * 0.4, 24),
+      new THREE.MeshBasicMaterial({ color: 0x4a2a1a, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+    );
+    crack.rotation.x = -Math.PI / 2;
+    crack.position.y = 0.04;
+    g.add(crack);
+  }
+
+  // Dead snags around the zone
+  const snagPositions = [[-1.8, -1.5], [1.6, -1.7], [-1.4, 1.8], [2.0, 1.5], [0, -2.5]];
+  for (const p of snagPositions) {
+    const snag = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.2, 1.6, 6), MAT.trunkDead);
+    snag.position.set(p[0], 0.8, p[1]);
+    snag.rotation.z = (Math.random() - 0.5) * 0.3;
+    snag.castShadow = true;
+    g.add(snag);
+    // Broken top
+    const top = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.3, 5), MAT.trunkDead);
+    top.position.set(p[0], 1.7, p[1]);
+    g.add(top);
+  }
+
+  // Thermometer prop
+  const thermBase = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8), MAT.white);
+  thermBase.position.set(0.5, 0.5, 0.2);
+  g.add(thermBase);
+  const thermBulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), mat(0xc7613a, { emissive: 0xc7613a, emissiveIntensity: 0.6 }));
+  thermBulb.position.set(0.5, 0.05, 0.2);
+  g.add(thermBulb);
+  const thermTop = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), MAT.white);
+  thermTop.position.set(0.5, 1.02, 0.2);
+  g.add(thermTop);
+
+  // Heat shimmer plane
+  const shimmer = new THREE.Mesh(
+    new THREE.PlaneGeometry(4.5, 2.5, 8, 4),
+    new THREE.MeshBasicMaterial({
+      color: 0xffcc88, transparent: true, opacity: 0.18, side: THREE.DoubleSide
+    })
+  );
+  shimmer.position.set(0, 1.0, 0);
+  g.add(shimmer);
+
+  // Orange glow light
+  const heatLight = new THREE.PointLight(0xff7a3a, 0.7, 8);
+  heatLight.position.set(0, 1.5, 0);
+  g.add(heatLight);
+
+  // Glow + hitbox
+  const ring = makeGlowRing(3.4);
+  const hitbox = makeHitbox(7, 5, 7);
+  hitbox.position.y = 2;
+
+  attachLandmark('heat', g, hitbox, ring, heatLight, (t) => {
+    // Shimmer wobble
+    const pos = shimmer.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      pos.setZ(i, Math.sin(t * 3 + x * 1.5) * 0.08);
+    }
+    pos.needsUpdate = true;
+    shimmer.material.opacity = 0.14 + Math.sin(t * 2) * 0.05;
+    heatLight.intensity = 0.6 + Math.sin(t * 1.5) * 0.15;
+  });
+}
+
+/* ============================================================
+   PLAYER — young field researcher
+   ============================================================ */
+const player = new THREE.Group();
+player.position.set(0, 1.4, 0);
+scene.add(player);
+
+const playerParts = {};
 function buildPlayer() {
-  player = new THREE.Group();
-  // Scale up significantly so character is clearly visible from isometric view
-  const SCALE = 1.6;
-
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xd4a884, roughness: 0.85 });
-  const jacketMat = new THREE.MeshStandardMaterial({ color: 0xc8552a, roughness: 0.85 }); // bright field jacket — orange/rust
-  const jacketDarkMat = new THREE.MeshStandardMaterial({ color: 0x8a3a1c, roughness: 0.9 });
-  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x3a4a40, roughness: 0.95 });
-  const packMat = new THREE.MeshStandardMaterial({ color: 0x5a4530, roughness: 0.95 });
-  const bootMat = new THREE.MeshStandardMaterial({ color: 0x2a1f15, roughness: 0.95 });
-  const hairMat = new THREE.MeshStandardMaterial({ color: 0x3a2620, roughness: 0.95 });
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.5 });
-  const beanieMat = new THREE.MeshStandardMaterial({ color: 0x8a3a1c, roughness: 0.95 });
-
-  // Legs
-  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.18 * SCALE, 0.7 * SCALE, 0.2 * SCALE), pantsMat);
-  legL.position.set(-0.12 * SCALE, 0.5 * SCALE, 0);
-  legL.castShadow = true;
-  player.add(legL);
-  const legR = legL.clone();
-  legR.position.x = 0.12 * SCALE;
-  player.add(legR);
-
-  // Boots
-  const bootL = new THREE.Mesh(new THREE.BoxGeometry(0.22 * SCALE, 0.16 * SCALE, 0.28 * SCALE), bootMat);
-  bootL.position.set(-0.12 * SCALE, 0.1 * SCALE, 0.04 * SCALE);
-  bootL.castShadow = true;
-  player.add(bootL);
-  const bootR = bootL.clone();
-  bootR.position.x = 0.12 * SCALE;
-  player.add(bootR);
-
-  // Torso - bright orange jacket so it stands out
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5 * SCALE, 0.7 * SCALE, 0.32 * SCALE), jacketMat);
-  torso.position.y = 1.2 * SCALE;
+  // Body / jacket
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.45), MAT.jacket);
+  torso.position.y = 1.6;
   torso.castShadow = true;
   player.add(torso);
+  playerParts.torso = torso;
 
-  // Jacket detail — darker stripe across chest
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.52 * SCALE, 0.1 * SCALE, 0.33 * SCALE), jacketDarkMat);
-  stripe.position.set(0, 1.05 * SCALE, 0);
+  // Jacket dark stripe across chest
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.71, 0.16, 0.46), MAT.jacketStripe);
+  stripe.position.y = 1.75;
   player.add(stripe);
 
-  // Arms
-  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.16 * SCALE, 0.62 * SCALE, 0.2 * SCALE), jacketMat);
-  armL.position.set(-0.33 * SCALE, 1.2 * SCALE, 0);
-  armL.castShadow = true;
-  player.add(armL);
-  const armR = armL.clone();
-  armR.position.x = 0.33 * SCALE;
-  player.add(armR);
-
-  // Hands
-  const handL = new THREE.Mesh(new THREE.BoxGeometry(0.15 * SCALE, 0.15 * SCALE, 0.18 * SCALE), skinMat);
-  handL.position.set(-0.33 * SCALE, 0.82 * SCALE, 0);
-  handL.castShadow = true;
-  player.add(handL);
-  const handR = handL.clone();
-  handR.position.x = 0.33 * SCALE;
-  player.add(handR);
-
-  // Neck (small skin patch)
-  const neck = new THREE.Mesh(new THREE.BoxGeometry(0.16 * SCALE, 0.1 * SCALE, 0.16 * SCALE), skinMat);
-  neck.position.y = 1.6 * SCALE;
-  player.add(neck);
-
-  // Head — slightly taller than wide for human proportion
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.34 * SCALE, 0.4 * SCALE, 0.34 * SCALE), skinMat);
-  head.position.y = 1.85 * SCALE;
-  head.castShadow = true;
-  player.add(head);
-
-  // Eyes — small dark cubes on face front (+Z is forward when player.rotation.y=0)
-  const eyeGeo = new THREE.BoxGeometry(0.05 * SCALE, 0.06 * SCALE, 0.04 * SCALE);
-  const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-  eyeL.position.set(-0.08 * SCALE, 1.87 * SCALE, 0.18 * SCALE);
-  player.add(eyeL);
-  const eyeR = eyeL.clone();
-  eyeR.position.x = 0.08 * SCALE;
-  player.add(eyeR);
-
-  // Beanie/hat — to add character
-  const beanie = new THREE.Mesh(new THREE.BoxGeometry(0.38 * SCALE, 0.18 * SCALE, 0.38 * SCALE), beanieMat);
-  beanie.position.y = 2.12 * SCALE;
-  beanie.castShadow = true;
-  player.add(beanie);
-
-  // Hair peeking out at sides
-  const hairL = new THREE.Mesh(new THREE.BoxGeometry(0.06 * SCALE, 0.12 * SCALE, 0.32 * SCALE), hairMat);
-  hairL.position.set(-0.18 * SCALE, 1.92 * SCALE, 0);
-  player.add(hairL);
-  const hairR = hairL.clone();
-  hairR.position.x = 0.18 * SCALE;
-  player.add(hairR);
-
   // Backpack
-  const pack = new THREE.Mesh(new THREE.BoxGeometry(0.42 * SCALE, 0.5 * SCALE, 0.22 * SCALE), packMat);
-  pack.position.set(0, 1.22 * SCALE, -0.25 * SCALE);
+  const pack = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.75, 0.3), MAT.backpack);
+  pack.position.set(0, 1.65, -0.3);
   pack.castShadow = true;
   player.add(pack);
-
   // Backpack straps
-  const strapMat = new THREE.MeshStandardMaterial({ color: 0x6b4a30, roughness: 0.9 });
-  const strap1 = new THREE.Mesh(new THREE.BoxGeometry(0.05 * SCALE, 0.55 * SCALE, 0.05 * SCALE), strapMat);
-  strap1.position.set(-0.18 * SCALE, 1.25 * SCALE, -0.08 * SCALE);
-  player.add(strap1);
-  const strap2 = strap1.clone();
-  strap2.position.x = 0.18 * SCALE;
-  player.add(strap2);
+  for (let i = -1; i <= 1; i += 2) {
+    const strap = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.7, 0.05), MAT.jacketStripe);
+    strap.position.set(i * 0.18, 1.7, -0.16);
+    player.add(strap);
+  }
 
-  // Drop-shadow blob underneath
+  // Head + skin
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.55), MAT.skin);
+  head.position.y = 2.35;
+  head.castShadow = true;
+  player.add(head);
+  playerParts.head = head;
+
+  // Beanie
+  const beanie = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.22, 0.58), MAT.beanie);
+  beanie.position.y = 2.65;
+  player.add(beanie);
+  const beanieTop = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.4), MAT.beanie);
+  beanieTop.position.y = 2.77;
+  player.add(beanieTop);
+
+  // Hair peeking out at the sides
+  const hairL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.5), MAT.hair);
+  hairL.position.set(-0.27, 2.5, 0);
+  player.add(hairL);
+  const hairR = hairL.clone();
+  hairR.position.x = 0.27;
+  player.add(hairR);
+  const hairBack = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.15, 0.1), MAT.hair);
+  hairBack.position.set(0, 2.5, -0.3);
+  player.add(hairBack);
+
+  // Eyes
+  const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.04), MAT.blackBox);
+  eyeL.position.set(-0.12, 2.36, 0.28);
+  player.add(eyeL);
+  const eyeR = eyeL.clone();
+  eyeR.position.x = 0.12;
+  player.add(eyeR);
+
+  // Arms
+  function makeArm(side) {
+    const arm = new THREE.Group();
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.85, 0.25), MAT.jacket);
+    upper.position.y = -0.42;
+    upper.castShadow = true;
+    arm.add(upper);
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.22), MAT.skin);
+    hand.position.y = -0.92;
+    arm.add(hand);
+    arm.position.set(side * 0.46, 2.05, 0);
+    player.add(arm);
+    return arm;
+  }
+  playerParts.armL = makeArm(-1);
+  playerParts.armR = makeArm( 1);
+
+  // Legs
+  function makeLeg(side) {
+    const leg = new THREE.Group();
+    const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.85, 0.3), MAT.pants);
+    thigh.position.y = -0.42;
+    thigh.castShadow = true;
+    leg.add(thigh);
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.22, 0.4), MAT.boots);
+    boot.position.set(0, -0.92, 0.05);
+    leg.add(boot);
+    leg.position.set(side * 0.18, 1.1, 0);
+    player.add(leg);
+    return leg;
+  }
+  playerParts.legL = makeLeg(-1);
+  playerParts.legR = makeLeg( 1);
+
+  // Drop shadow blob
   const shadow = new THREE.Mesh(
-    new THREE.CircleGeometry(0.55, 16),
-    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 })
+    new THREE.CircleGeometry(0.6, 16),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28 })
   );
   shadow.rotation.x = -Math.PI / 2;
-  shadow.position.y = 0.02;
+  shadow.position.y = 0.04;
   player.add(shadow);
+  playerParts.shadow = shadow;
+}
+buildPlayer();
 
-  player.userData.parts = { legL, legR, armL, armR, head, eyeL, eyeR };
-  player.position.set(0, 0, 0);
-  scene.add(player);
-  playerVelocity = new THREE.Vector3();
+/* ============================================================
+   INPUT — keyboard + on-screen + click
+   ============================================================ */
+const input = { up: false, down: false, left: false, right: false };
+
+function setKey(code, val) {
+  if (code === 'KeyW' || code === 'ArrowUp')    input.up = val;
+  if (code === 'KeyS' || code === 'ArrowDown')  input.down = val;
+  if (code === 'KeyA' || code === 'ArrowLeft')  input.left = val;
+  if (code === 'KeyD' || code === 'ArrowRight') input.right = val;
 }
 
-// ====================== CRYSTALS ======================
-function buildCrystals() {
-  for (const scenario of SCENARIOS) {
-    // Replace generic crystals with REAL scenario objects for transit & indigenous
-    if (scenario.id === "transit") {
-      const obj = buildSkyTrainObject(scenario);
-      crystals.push(obj);
-      continue;
-    }
-    if (scenario.id === "indigenous") {
-      const obj = buildLonghouseObject(scenario);
-      crystals.push(obj);
-      continue;
-    }
-
-    // Generic glowing crystal for the other 3 scenarios
-    const crystal = new THREE.Group();
-
-    const mesh = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.55, 0),
-      new THREE.MeshStandardMaterial({
-        color: 0xf0c890, emissive: 0xf0c890, emissiveIntensity: 0.85,
-        metalness: 0.4, roughness: 0.2,
-      })
-    );
-    mesh.position.y = 1.4; mesh.castShadow = true;
-    crystal.add(mesh);
-
-    const beam = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.1, 0.5, 4, 8, 1, true),
-      new THREE.MeshBasicMaterial({ color: 0xf0d4a0, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
-    );
-    beam.position.y = 2.2;
-    crystal.add(beam);
-
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.7, 1.1, 32),
-      new THREE.MeshBasicMaterial({ color: 0xf0d4a0, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
-    );
-    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06;
-    crystal.add(ring);
-
-    const innerRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.35, 0.55, 24),
-      new THREE.MeshBasicMaterial({ color: 0xfae0b0, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
-    );
-    innerRing.rotation.x = -Math.PI / 2; innerRing.position.y = 0.07;
-    crystal.add(innerRing);
-
-    const light = new THREE.PointLight(0xf0d4a0, 0.85, 6);
-    light.position.y = 1.4;
-    crystal.add(light);
-
-    crystal.position.set(scenario.crystalPos[0], 0, scenario.crystalPos[2]);
-    crystal.userData = { scenario, resolved: false, mesh, ring, innerRing, beam, light, type: "crystal" };
-    scene.add(crystal);
-    crystals.push(crystal);
+// Attach to BOTH window and document for file:// reliability
+function onKeyDown(e) {
+  if (STATE.paused) return;
+  setKey(e.code, true);
+  // Prevent page scrolling on arrow keys
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code) !== -1) {
+    e.preventDefault();
   }
 }
+function onKeyUp(e) {
+  setKey(e.code, false);
+}
+window.addEventListener('keydown', onKeyDown);
+window.addEventListener('keyup',   onKeyUp);
+document.addEventListener('keydown', onKeyDown);
+document.addEventListener('keyup',   onKeyUp);
 
-// =========== BC SkyTrain — real interactive scenario object ===========
-function buildSkyTrainObject(scenario) {
-  const group = new THREE.Group();
-  const [px, , pz] = scenario.crystalPos;
-  group.position.set(px, 0, pz);
-
-  // Elevated concrete track
-  const trackMat = new THREE.MeshStandardMaterial({ color: 0x9a9a8c, roughness: 0.9, flatShading: true });
-  const track = new THREE.Mesh(new THREE.BoxGeometry(8, 0.3, 1.4), trackMat);
-  track.position.y = 2.2;
-  track.castShadow = true;
-  track.receiveShadow = true;
-  group.add(track);
-
-  // Track top rails
-  const railMat = new THREE.MeshStandardMaterial({ color: 0x5a5a5a, roughness: 0.4, metalness: 0.6 });
-  const rail1 = new THREE.Mesh(new THREE.BoxGeometry(8, 0.05, 0.08), railMat);
-  rail1.position.set(0, 2.4, 0.5);
-  group.add(rail1);
-  const rail2 = rail1.clone();
-  rail2.position.z = -0.5;
-  group.add(rail2);
-
-  // Concrete support pillars
-  for (let i = -1; i <= 1; i += 2) {
-    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.2, 0.6), trackMat);
-    pillar.position.set(i * 3, 1.1, 0);
-    pillar.castShadow = true;
-    pillar.receiveShadow = true;
-    group.add(pillar);
-
-    // Pillar cap (wider top)
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.15, 0.9), trackMat);
-    cap.position.set(i * 3, 2.05, 0);
-    cap.castShadow = true;
-    group.add(cap);
-  }
-
-  // The SkyTrain car itself — BC blue and white
-  const trainGroup = new THREE.Group();
-
-  // Main body — long box, white with blue accent
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xe8eaec, roughness: 0.4, metalness: 0.3 });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 1.2), bodyMat);
-  body.castShadow = true;
-  trainGroup.add(body);
-
-  // Blue stripe along the side (TransLink BC blue)
-  const stripeMat = new THREE.MeshStandardMaterial({ color: 0x0089cf, roughness: 0.4, metalness: 0.3 });
-  const stripe1 = new THREE.Mesh(new THREE.BoxGeometry(4.55, 0.18, 1.22), stripeMat);
-  stripe1.position.y = 0.1;
-  trainGroup.add(stripe1);
-
-  // Top blue accent
-  const stripe2 = new THREE.Mesh(new THREE.BoxGeometry(4.55, 0.12, 1.22), stripeMat);
-  stripe2.position.y = 0.55;
-  trainGroup.add(stripe2);
-
-  // Windows — glowing warm yellow
-  const winMat = new THREE.MeshStandardMaterial({
-    color: 0xfff0c0, emissive: 0xfff0c0, emissiveIntensity: 0.6, side: THREE.DoubleSide
-  });
-  for (let i = -2; i <= 2; i++) {
-    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.45), winMat);
-    win.position.set(i * 0.75, 0.32, 0.611);
-    trainGroup.add(win);
-    const win2 = win.clone();
-    win2.position.z = -0.611;
-    win2.rotation.y = Math.PI;
-    trainGroup.add(win2);
-  }
-
-  // Front-end angle (rounded nose) — small box rotated slightly
-  const noseMat = new THREE.MeshStandardMaterial({ color: 0x0089cf, roughness: 0.3, metalness: 0.5 });
-  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 1.15), noseMat);
-  nose.position.set(2.25, 0, 0);
-  trainGroup.add(nose);
-
-  // Pantograph (overhead arm) - little detail on top
-  const pantMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.5 });
-  const pant = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.6), pantMat);
-  pant.position.y = 0.85;
-  trainGroup.add(pant);
-
-  trainGroup.position.set(0, 3.1, 0);
-  trainGroup.userData.train = { baseX: 0, t: 0 };
-  group.add(trainGroup);
-
-  // Soft glow ring on the ground beneath (signals clickable)
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(2.2, 3.0, 32),
-    new THREE.MeshBasicMaterial({ color: 0xf0d4a0, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
-  );
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.07;
-  group.add(ring);
-
-  // Subtle glow light
-  const light = new THREE.PointLight(0x0089cf, 0.6, 8);
-  light.position.set(0, 3.5, 0);
-  group.add(light);
-
-  // Click hit-box (invisible big box) — easy to click
-  const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-  const hitBox = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 4), hitMat);
-  hitBox.position.y = 2.5;
-  group.add(hitBox);
-
-  // Label sign on the ground
-  // (skipping 3D text — too heavy without font loader; the ring + uniqueness signals interactivity)
-
-  group.userData = {
-    scenario, resolved: false,
-    mesh: hitBox, ring, innerRing: ring, beam: hitBox, light,
-    type: "skytrain",
-    trainGroup,
+// On-screen buttons (press-and-hold)
+document.querySelectorAll('.moveBtn[data-dir]').forEach(btn => {
+  const dir = btn.getAttribute('data-dir');
+  const press = (e) => {
+    e.preventDefault();
+    btn.classList.add('pressed');
+    input[dir] = true;
   };
-  scene.add(group);
-  return group;
-}
-
-// =========== Coastal Guardian Longhouse — real interactive scenario object ===========
-function buildLonghouseObject(scenario) {
-  const group = new THREE.Group();
-  const [px, , pz] = scenario.crystalPos;
-  group.position.set(px, 0, pz);
-
-  // Main longhouse — long cedar building
-  const cedarMat = new THREE.MeshStandardMaterial({ color: 0x6b4530, roughness: 0.92, flatShading: true });
-  const cedarDarkMat = new THREE.MeshStandardMaterial({ color: 0x4a2f20, roughness: 0.95, flatShading: true });
-
-  const main = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 2.4), cedarMat);
-  main.position.y = 1;
-  main.castShadow = true;
-  main.receiveShadow = true;
-  group.add(main);
-
-  // Cedar plank pattern — vertical dark lines
-  for (let i = -2; i <= 2; i++) {
-    const plank = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.05, 2.42), cedarDarkMat);
-    plank.position.set(i * 0.85, 1.02, 0);
-    group.add(plank);
-  }
-
-  // Pitched roof (a long prism using two angled boxes)
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x3a2620, roughness: 0.9, flatShading: true });
-  const roofL = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.15, 1.6), roofMat);
-  roofL.position.set(0, 2.5, -0.6);
-  roofL.rotation.x = -Math.PI * 0.18;
-  roofL.castShadow = true;
-  group.add(roofL);
-  const roofR = roofL.clone();
-  roofR.position.z = 0.6;
-  roofR.rotation.x = Math.PI * 0.18;
-  group.add(roofR);
-
-  // Front gable triangle (front face peak)
-  const gableMat = new THREE.MeshStandardMaterial({ color: 0x5a3a28, roughness: 0.92, flatShading: true });
-  const gable = new THREE.Mesh(new THREE.ConeGeometry(1.7, 1.2, 3), gableMat);
-  gable.rotation.y = Math.PI / 6;
-  gable.position.set(2.5, 2.6, 0);
-  gable.scale.set(1, 1, 0.4);
-  gable.castShadow = true;
-  group.add(gable);
-
-  // Front door — dark opening
-  const doorMat = new THREE.MeshStandardMaterial({ color: 0x1a0f08, roughness: 0.95 });
-  const door = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.5), doorMat);
-  door.position.set(2.51, 0.75, 0);
-  door.rotation.y = Math.PI / 2;
-  group.add(door);
-
-  // Painted symbol above door — red & black abstract motif (suggested, not detailed)
-  const paintRedMat = new THREE.MeshStandardMaterial({ color: 0x8a2a18, roughness: 0.85 });
-  const paintBlackMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.85 });
-  // Two crescents and a bar — evocative of NW Coast formline (very abstract)
-  const motif1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.5, 0.3), paintRedMat);
-  motif1.position.set(2.51, 1.95, -0.2);
-  group.add(motif1);
-  const motif2 = motif1.clone();
-  motif2.position.z = 0.2;
-  group.add(motif2);
-  const motifBar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.1, 0.7), paintBlackMat);
-  motifBar.position.set(2.51, 2.3, 0);
-  group.add(motifBar);
-
-  // Totem pole standing next to longhouse
-  const totemPos = -3.2;
-  const heights = [0.9, 0.75, 0.65];
-  const colors = [0x8a3a28, 0x2a4a3a, 0x6b4530];
-  let y = 0;
-  for (let i = 0; i < heights.length; i++) {
-    const sectMat = new THREE.MeshStandardMaterial({ color: colors[i], roughness: 0.92, flatShading: true });
-    const sect = new THREE.Mesh(new THREE.BoxGeometry(0.55, heights[i], 0.55), sectMat);
-    sect.position.set(totemPos, y + heights[i] / 2, 0);
-    sect.castShadow = true;
-    group.add(sect);
-    y += heights[i];
-
-    if (i < 2) {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.18, 0.18), sectMat);
-      wing.position.set(totemPos, y - heights[i] * 0.4, 0);
-      wing.castShadow = true;
-      group.add(wing);
-    }
-  }
-  // Top eagle/raven cap
-  const cap = new THREE.Mesh(
-    new THREE.ConeGeometry(0.4, 0.6, 4),
-    new THREE.MeshStandardMaterial({ color: 0xa84030, roughness: 0.85, flatShading: true })
-  );
-  cap.position.set(totemPos, y + 0.3, 0);
-  cap.castShadow = true;
-  group.add(cap);
-
-  // Small fire pit in front
-  const stoneMat = new THREE.MeshStandardMaterial({ color: 0x5a5e62, roughness: 0.95, flatShading: true });
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2;
-    const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.18, 0), stoneMat);
-    stone.position.set(3.5 + Math.cos(a) * 0.4, 0.15, Math.sin(a) * 0.4);
-    stone.castShadow = true;
-    group.add(stone);
-  }
-  // Flickering fire (small glowing cone)
-  const flame = new THREE.Mesh(
-    new THREE.ConeGeometry(0.2, 0.5, 8),
-    new THREE.MeshBasicMaterial({ color: 0xff8c3a, transparent: true, opacity: 0.85 })
-  );
-  flame.position.set(3.5, 0.35, 0);
-  group.add(flame);
-  flame.userData.fire = { baseY: 0.35, phase: 0 };
-
-  // Fire light (warm orange)
-  const fireLight = new THREE.PointLight(0xff8c3a, 0.9, 5);
-  fireLight.position.set(3.5, 0.5, 0);
-  group.add(fireLight);
-  fireLight.userData.fire = { phase: 0 };
-
-  // Smoke from chimney
-  for (let i = 0; i < 3; i++) {
-    const smoke = new THREE.Mesh(
-      new THREE.SphereGeometry(0.22 + i * 0.08, 8, 6),
-      new THREE.MeshBasicMaterial({ color: 0xa8a8a0, transparent: true, opacity: 0.4 - i * 0.1 })
-    );
-    smoke.position.set(0, 3.2 + i * 0.4, 0);
-    smoke.userData.smoke = { baseY: 3.2 + i * 0.4, phase: i * 0.8 };
-    group.add(smoke);
-  }
-
-  // Soft glow ring on ground signaling interactivity
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(3.0, 3.8, 32),
-    new THREE.MeshBasicMaterial({ color: 0xf0d4a0, transparent: true, opacity: 0.45, side: THREE.DoubleSide })
-  );
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.07;
-  group.add(ring);
-
-  // Hit box for clicks
-  const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-  const hitBox = new THREE.Mesh(new THREE.BoxGeometry(8, 5, 5), hitMat);
-  hitBox.position.y = 2.5;
-  group.add(hitBox);
-
-  const light = new THREE.PointLight(0xf0d4a0, 0.5, 7);
-  light.position.set(0, 3, 0);
-  group.add(light);
-
-  group.userData = {
-    scenario, resolved: false,
-    mesh: hitBox, ring, innerRing: ring, beam: hitBox, light,
-    type: "longhouse",
-    flame, fireLight,
+  const release = (e) => {
+    if (e) e.preventDefault();
+    btn.classList.remove('pressed');
+    input[dir] = false;
   };
-  scene.add(group);
-  return group;
-}
-
-// ====================== INPUT ======================
-const keys = { w: false, a: false, s: false, d: false };
-
-function handleKeyDown(e) {
-  const k = e.key.toLowerCase();
-  if (k === "w" || e.key === "ArrowUp")    { keys.w = true; e.preventDefault(); }
-  if (k === "a" || e.key === "ArrowLeft")  { keys.a = true; e.preventDefault(); }
-  if (k === "s" || e.key === "ArrowDown")  { keys.s = true; e.preventDefault(); }
-  if (k === "d" || e.key === "ArrowRight") { keys.d = true; e.preventDefault(); }
-}
-function handleKeyUp(e) {
-  const k = e.key.toLowerCase();
-  if (k === "w" || e.key === "ArrowUp")    keys.w = false;
-  if (k === "a" || e.key === "ArrowLeft")  keys.a = false;
-  if (k === "s" || e.key === "ArrowDown")  keys.s = false;
-  if (k === "d" || e.key === "ArrowRight") keys.d = false;
-}
-
-// Attach to BOTH window and document for maximum compatibility
-// (file:// URLs sometimes have flaky focus behavior)
-window.addEventListener("keydown", handleKeyDown);
-window.addEventListener("keyup", handleKeyUp);
-document.addEventListener("keydown", handleKeyDown);
-document.addEventListener("keyup", handleKeyUp);
-
-// Lose-focus safety: if user alt-tabs, release all keys
-window.addEventListener("blur", () => {
-  keys.w = false; keys.a = false; keys.s = false; keys.d = false;
+  btn.addEventListener('mousedown',  press);
+  btn.addEventListener('mouseup',    release);
+  btn.addEventListener('mouseleave', release);
+  btn.addEventListener('touchstart', press,   { passive: false });
+  btn.addEventListener('touchend',   release, { passive: false });
+  btn.addEventListener('touchcancel',release, { passive: false });
 });
 
-function tryClickAt(clientX, clientY) {
-  if (!gameState.started || activeCrystal) return;
-  const mouse = new THREE.Vector2(
-    (clientX / window.innerWidth) * 2 - 1,
-    -(clientY / window.innerHeight) * 2 + 1
-  );
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(mouse, camera);
+// Click / tap on canvas → raycast for landmarks
+const raycaster = new THREE.Raycaster();
+const mouseVec = new THREE.Vector2();
 
-  const targets = [];
-  for (const c of crystals) {
-    if (c.userData.resolved) continue;
-    targets.push(c.userData.mesh, c.userData.ring, c.userData.innerRing, c.userData.beam);
-  }
-  const intersects = raycaster.intersectObjects(targets);
+function pickLandmark(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  mouseVec.x = ((clientX - rect.left) / rect.width)  * 2 - 1;
+  mouseVec.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouseVec, camera);
+  const hitboxes = landmarks.map(l => l.hitbox);
+  const intersects = raycaster.intersectObjects(hitboxes, false);
   if (intersects.length > 0) {
-    const obj = intersects[0].object;
-    const crystal = crystals.find(c =>
-      c.userData.mesh === obj || c.userData.ring === obj ||
-      c.userData.innerRing === obj || c.userData.beam === obj
-    );
-    if (crystal) {
-      flashCrystal(crystal);
-      setTimeout(() => openScenario(crystal), 180);
-    }
+    return intersects[0].object.userData.landmarkId;
   }
+  return null;
 }
 
-document.getElementById("canvas").addEventListener("click", (e) => {
-  document.getElementById("canvas").focus(); // ensure keyboard focus
-  tryClickAt(e.clientX, e.clientY);
+function onCanvasClick(e) {
+  if (!STATE.started || STATE.paused) return;
+  const id = pickLandmark(e.clientX, e.clientY);
+  if (id) openScenario(id);
+}
+canvas.addEventListener('click', onCanvasClick);
+canvas.addEventListener('touchend', (e) => {
+  if (!STATE.started || STATE.paused) return;
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    const t = e.changedTouches[0];
+    const id = pickLandmark(t.clientX, t.clientY);
+    if (id) openScenario(id);
+  }
 });
-document.getElementById("canvas").addEventListener("touchend", (e) => {
-  if (e.changedTouches.length === 0) return;
-  const t = e.changedTouches[0];
-  tryClickAt(t.clientX, t.clientY);
-});
 
-function flashCrystal(crystal) {
-  const mesh = crystal.userData.mesh;
-  const orig = mesh.scale.x;
-  mesh.scale.setScalar(orig * 1.45);
-  setTimeout(() => mesh.scale.setScalar(orig), 280);
-}
+/* ============================================================
+   SCENARIO FLOW
+   ============================================================ */
+const popup    = document.getElementById('scenarioPopup');
+const fbEl     = document.getElementById('feedback');
+const titleEl  = document.getElementById('scenarioTitle');
+const descEl   = document.getElementById('scenarioDesc');
+const tagEl    = document.getElementById('scenarioTag');
+const verdictEl= document.getElementById('verdict');
+const explainEl= document.getElementById('explain');
+const metaEl   = document.getElementById('meta');
+const closeBtn = document.getElementById('closeBtn');
 
-// ====================== SCENARIO FLOW ======================
-function openScenario(crystal) {
-  activeCrystal = crystal;
-  const s = crystal.userData.scenario;
-  document.getElementById("scenario-card").innerHTML = `
-    <div class="scenario-badge">📡 Field report</div>
-    <h2>${s.title}</h2>
-    <p class="description">${s.description}</p>
-    <div class="choices">
-      <button class="choice" data-c="cause" onclick="answerScenario('cause')">Cause</button>
-      <button class="choice" data-c="impact" onclick="answerScenario('impact')">Impact</button>
-      <button class="choice" data-c="solution" onclick="answerScenario('solution')">Solution</button>
-    </div>
-    <div id="feedback-zone"></div>
-  `;
-  document.getElementById("scenario-modal").classList.remove("hidden");
-}
-
-function answerScenario(choice) {
-  const s = activeCrystal.userData.scenario;
-  const correct = choice === s.category;
-  if (correct) gameState.score += 20; else gameState.score += 5;
-
-  document.querySelectorAll(".scenario-card .choice").forEach(b => {
-    b.disabled = true;
-    if (b.dataset.c === s.category) b.classList.add("correct");
-    else if (b.dataset.c === choice) b.classList.add("wrong");
-    else b.classList.add("dimmed");
-  });
-
-  const catColor = s.category === "cause" ? "#a8451c" : s.category === "impact" ? "#2c5f6b" : "#1f5d4a";
-  document.getElementById("feedback-zone").innerHTML = `
-    <div class="feedback ${correct ? "correct" : "wrong"}">
-      <h3>
-        <span class="${correct ? "icon-c" : "icon-w"}">${correct ? "✓" : "✗"}</span>
-        ${correct ? "Correct." : "Not quite."} This is a <span style="color:${catColor};">${s.category}</span>.
-      </h3>
-      <p>${s.explanation}</p>
-      <div class="meta-row">
-        <div class="meta-block bc">
-          <div class="lbl">📍 BC Connection</div>
-          <div class="val">${s.bcConnection}</div>
-        </div>
-        <div class="meta-block stat">
-          <div class="lbl">📈 By the numbers</div>
-          <div class="val">${s.statistic}</div>
-        </div>
-      </div>
-    </div>
-    <button class="continue-btn" onclick="closeScenario()">Continue exploring</button>
-  `;
+function openScenario(id) {
+  if (STATE.resolved.has(id)) {
+    // Already done — still let them re-read it but don't double-count
+  }
+  const s = SCENARIO_BY_ID[id];
+  if (!s) return;
+  STATE.activeScenario = id;
+  STATE.paused = true;
+  tagEl.textContent = STATE.resolved.has(id) ? 'Scenario · revisited' : 'Scenario';
+  titleEl.textContent = s.title;
+  descEl.textContent  = s.desc;
+  fbEl.classList.remove('show');
+  document.querySelectorAll('.choice').forEach(b => b.disabled = false);
+  popup.style.display = 'flex';
 }
 
 function closeScenario() {
-  activeCrystal.userData.resolved = true;
-  gameState.resolved += 1;
-
-  const t = activeCrystal.userData.type || "crystal";
-
-  // For crystal type, change material colors; for landmark types, just dim the ring
-  if (t === "crystal") {
-    activeCrystal.userData.mesh.material.color.setHex(0x6fb89e);
-    activeCrystal.userData.mesh.material.emissive.setHex(0x6fb89e);
-    activeCrystal.userData.mesh.material.emissiveIntensity = 0.3;
-    activeCrystal.userData.beam.material.opacity = 0.04;
-  }
-
-  // Common: dim the ring, change light color to teal (resolved)
-  if (activeCrystal.userData.ring && activeCrystal.userData.ring.material) {
-    activeCrystal.userData.ring.material.opacity = 0.15;
-    activeCrystal.userData.ring.material.color.setHex(0x6fb89e);
-  }
-  if (activeCrystal.userData.innerRing && activeCrystal.userData.innerRing.material) {
-    activeCrystal.userData.innerRing.material.opacity = 0.2;
-  }
-  if (activeCrystal.userData.light) {
-    activeCrystal.userData.light.color.setHex(0x6fb89e);
-    activeCrystal.userData.light.intensity = 0.25;
-  }
-
-  document.getElementById("resolved-count").textContent = gameState.resolved;
-  document.getElementById("score").textContent = gameState.score;
-  updateCrystalDots();
-
-  gameState.fogDensity = Math.max(0.008, 0.038 - gameState.resolved * 0.006);
-  scene.fog.density = gameState.fogDensity;
-
-  document.getElementById("scenario-modal").classList.add("hidden");
-  activeCrystal = null;
-
-  if (gameState.resolved >= SCENARIOS.length) setTimeout(showFinal, 1200);
+  popup.style.display = 'none';
+  STATE.paused = false;
+  STATE.activeScenario = null;
+  // Re-focus canvas so keyboard keeps working
+  try { canvas.focus(); } catch (e) {}
 }
 
-function updateCrystalDots() {
-  const c = document.getElementById("crystals-dots");
-  c.innerHTML = "";
-  for (let i = 0; i < SCENARIOS.length; i++) {
-    const d = document.createElement("span");
-    d.className = "crystal-dot" + (i < gameState.resolved ? " resolved" : "");
-    c.appendChild(d);
+/* ============================================================
+   CELEBRATION FX — teen-voice shouts, confetti, score pop, milestone toasts
+   ============================================================ */
+const CORRECT_SHOUTS = [
+  "FACTS! 🔥",
+  "RESPECT 💯",
+  "ON IT ✓",
+  "NICE READ!",
+  "LET'S GO 🌿",
+  "HUZZAH!",
+  "CLEAN ✨",
+  "BIG BRAIN 🧠",
+];
+const WRONG_SHOUTS = [
+  "ALMOST!",
+  "CLOSE READ",
+  "KEEP GOING",
+  "GOOD TRY ↻",
+  "NICE EFFORT",
+];
+// Milestone messages keyed by how many scenarios are resolved
+const MILESTONES = {
+  1: "1 down. The fog is starting to clear.",
+  2: "Two reads in. Eyes up — three to go.",
+  3: "Halfway through. You're seeing the pattern now.",
+  4: "One more scenario. Don't blink.",
+};
+
+const _celebEl     = document.getElementById('celebration');
+const _celebShout  = document.getElementById('celebrationShout');
+const _scorePopEl  = document.getElementById('scorePop');
+const _milestoneEl = document.getElementById('milestone');
+let _scorePopTimer = null;
+let _milestoneTimer = null;
+let _celebTimer = null;
+
+function spawnConfetti(correct) {
+  // Pick a palette: pink/purple for correct, warm orange for wrong
+  const palette = correct
+    ? ['#ff4a96', '#c64ad8', '#7c5cce', '#ffd66b', '#ffffff']
+    : ['#ffb84a', '#ff7a3a', '#ff4a96'];
+  const root = _celebEl;
+  const count = correct ? 36 : 18;
+  for (let i = 0; i < count; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.background = palette[i % palette.length];
+    c.style.left = (50 + (Math.random() - 0.5) * 8) + '%';
+    c.style.top  = (50 + (Math.random() - 0.5) * 8) + '%';
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 200 + Math.random() * 350;
+    c.style.setProperty('--cx', Math.cos(angle) * dist + 'px');
+    c.style.setProperty('--cy', Math.sin(angle) * dist * 0.7 + 'px');
+    c.style.setProperty('--cr', (Math.random() * 720 - 360) + 'deg');
+    root.appendChild(c);
+    setTimeout(() => { if (c.parentNode) c.parentNode.removeChild(c); }, 1700);
   }
 }
 
-function showFinal() {
-  let medal, blurb;
-  if (gameState.score >= 90) { medal = "🏆"; blurb = "Exceptional fieldwork. You read the BC coast like a climate scientist — and a policymaker."; }
-  else if (gameState.score >= 70) { medal = "🌟"; blurb = "Strong work. You clearly distinguish causes, impacts, and solutions in the BC landscape."; }
-  else if (gameState.score >= 50) { medal = "🔥"; blurb = "Good foundation. Walk the coast again — the BC connections will sink in."; }
-  else { medal = "🌱"; blurb = "Solid start — climate systems are complex. Try again and use the BC connections as clues."; }
-
-  document.getElementById("final").innerHTML = `
-    <div class="final-card">
-      <div class="medal">${medal}</div>
-      <div class="eyebrow">Mission complete</div>
-      <h1>The fog has lifted.</h1>
-      <p>${blurb}</p>
-      <div class="final-stats">
-        <div class="final-stat"><div class="v">${gameState.score}</div><div class="l">Score</div></div>
-        <div class="final-stat"><div class="v">${gameState.resolved}/${SCENARIOS.length}</div><div class="l">Reports</div></div>
-        <div class="final-stat"><div class="v">5</div><div class="l">BC Stories</div></div>
-      </div>
-      <p style="font-size:0.84rem; color:#9aa8a2;">Reflect — which BC story moved you most? What action could you take this month?</p>
-      <button onclick="restartGame()">Walk it again</button>
-    </div>
-  `;
-  document.getElementById("final").classList.remove("hidden");
+function showCelebration(correct) {
+  const list = correct ? CORRECT_SHOUTS : WRONG_SHOUTS;
+  _celebShout.textContent = list[Math.floor(Math.random() * list.length)];
+  _celebShout.className = 'shout' + (correct ? '' : ' wrong');
+  // Restart animation by re-flowing
+  _celebShout.style.animation = 'none';
+  void _celebShout.offsetWidth;
+  _celebShout.style.animation = '';
+  _celebEl.classList.add('show');
+  spawnConfetti(correct);
+  if (_celebTimer) clearTimeout(_celebTimer);
+  _celebTimer = setTimeout(() => { _celebEl.classList.remove('show'); }, 1500);
 }
 
-function restartGame() {
-  gameState.resolved = 0;
-  gameState.score = 0;
-  gameState.fogDensity = 0.038;
-  scene.fog.density = gameState.fogDensity;
-  player.position.set(0, 0, 0);
-  playerVelocity.set(0, 0, 0);
+function showScorePop(points) {
+  _scorePopEl.textContent = '+' + points;
+  _scorePopEl.classList.remove('show');
+  void _scorePopEl.offsetWidth;
+  _scorePopEl.classList.add('show');
+  if (_scorePopTimer) clearTimeout(_scorePopTimer);
+  _scorePopTimer = setTimeout(() => { _scorePopEl.classList.remove('show'); }, 1200);
+}
 
-  for (const c of crystals) {
-    c.userData.resolved = false;
-    const t = c.userData.type || "crystal";
-    if (t === "crystal") {
-      c.userData.mesh.material.color.setHex(0xf0c890);
-      c.userData.mesh.material.emissive.setHex(0xf0c890);
-      c.userData.mesh.material.emissiveIntensity = 0.85;
-      c.userData.beam.material.opacity = 0.15;
+function showMilestone(text) {
+  if (!text) return;
+  _milestoneEl.textContent = text;
+  _milestoneEl.classList.add('show');
+  if (_milestoneTimer) clearTimeout(_milestoneTimer);
+  _milestoneTimer = setTimeout(() => { _milestoneEl.classList.remove('show'); }, 3200);
+}
+
+function chooseAnswer(choice) {
+  const id = STATE.activeScenario;
+  if (!id) return;
+  const s = SCENARIO_BY_ID[id];
+  const correct = (choice === s.answer);
+  const wasResolved = STATE.resolved.has(id);
+
+  if (!wasResolved) {
+    const pts = correct ? 20 : 5;
+    if (correct) STATE.correct += 1;
+    STATE.score += pts;
+    STATE.resolved.add(id);
+    updateHUD();
+    // Dim glow ring + clear fog
+    const lm = landmarks.find(l => l.id === id);
+    if (lm) {
+      lm.glowRing.material.opacity = 0.14;
+      lm.glowRing.material.color.set(0x6a5078);
+      if (lm.light) lm.light.intensity *= 0.5;
     }
-    if (c.userData.ring && c.userData.ring.material) {
-      c.userData.ring.material.opacity = 0.55;
-      c.userData.ring.material.color.setHex(0xf0d4a0);
-    }
-    if (c.userData.innerRing && c.userData.innerRing.material) {
-      c.userData.innerRing.material.opacity = 0.65;
-    }
-    if (c.userData.light) {
-      c.userData.light.color.setHex(0xf0d4a0);
-      c.userData.light.intensity = 0.85;
-    }
+    STATE.fogDensity = Math.max(0.0, STATE.fogDensity - 0.003);
+    scene.fog.density = STATE.fogDensity;
+
+    // CELEBRATION FX — fires only on first attempt
+    showCelebration(correct);
+    showScorePop(pts);
+    // Milestone toast after the celebration animation runs
+    setTimeout(() => {
+      showMilestone(MILESTONES[STATE.resolved.size]);
+    }, 1600);
   }
 
-  document.getElementById("resolved-count").textContent = "0";
-  document.getElementById("score").textContent = "0";
-  updateCrystalDots();
-  document.getElementById("final").classList.add("hidden");
-}
+  // Show feedback
+  document.querySelectorAll('.choice').forEach(b => b.disabled = true);
+  verdictEl.textContent = correct ? '✓ Correct read' : '✗ Not quite — this is a ' + s.answer.toUpperCase();
+  verdictEl.className = 'verdict ' + (correct ? 'correct' : 'wrong');
+  explainEl.textContent = s.explain;
+  metaEl.innerHTML = '<strong>BC connection:</strong> ' + s.connection + '<br><strong>Did you know:</strong> ' + s.stat;
+  document.getElementById('whyText').textContent = s.why || '';
+  document.getElementById('actText').textContent = s.youCanDo || '';
+  fbEl.classList.add('show');
 
-// ====================== GAME LOOP ======================
-function updatePlayer(delta) {
-  const camDir = new THREE.Vector3();
-  camera.getWorldDirection(camDir);
-  camDir.y = 0; camDir.normalize();
-  const camRight = new THREE.Vector3();
-  camRight.crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
-
-  let dx = 0, dz = 0;
-  if (keys.w) { dx += camDir.x; dz += camDir.z; }
-  if (keys.s) { dx -= camDir.x; dz -= camDir.z; }
-  if (keys.a) { dx -= camRight.x; dz -= camRight.z; }
-  if (keys.d) { dx += camRight.x; dz += camRight.z; }
-
-  const moveLen = Math.sqrt(dx * dx + dz * dz);
-  const time = clock.getElapsedTime();
-  const parts = player.userData.parts;
-
-  if (moveLen > 0) {
-    dx /= moveLen; dz /= moveLen;
-    const targetAngle = Math.atan2(dx, dz);
-    let diff = targetAngle - player.rotation.y;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
-    player.rotation.y += diff * 0.2;
-
-    const swing = Math.sin(time * 9) * 0.35;
-    if (parts) {
-      parts.legL.rotation.x = swing;
-      parts.legR.rotation.x = -swing;
-      parts.armL.rotation.x = -swing * 0.7;
-      parts.armR.rotation.x = swing * 0.7;
-    }
-    player.position.y = Math.abs(Math.sin(time * 9)) * 0.06;
+  // If all resolved, show final after the user closes
+  if (STATE.resolved.size === SCENARIOS.length) {
+    closeBtn.textContent = 'See your field report →';
   } else {
-    if (parts) {
-      parts.legL.rotation.x *= 0.85;
-      parts.legR.rotation.x *= 0.85;
-      parts.armL.rotation.x *= 0.85;
-      parts.armR.rotation.x *= 0.85;
-    }
-    player.position.y *= 0.85;
-  }
-
-  const newX = player.position.x + dx * MOVE_SPEED;
-  const newZ = player.position.z + dz * MOVE_SPEED;
-  const newR = Math.sqrt(newX * newX + newZ * newZ);
-  if (newR < ISLAND_RADIUS - 1.5) {
-    player.position.x = newX;
-    player.position.z = newZ;
-  }
-
-  const camTargetX = player.position.x + 14;
-  const camTargetZ = player.position.z + 14;
-  const camTargetY = 13;
-  camera.position.x += (camTargetX - camera.position.x) * 0.06;
-  camera.position.z += (camTargetZ - camera.position.z) * 0.06;
-  camera.position.y += (camTargetY - camera.position.y) * 0.06;
-  camera.lookAt(player.position.x, 1.0, player.position.z);
-}
-
-function animateCrystals(time) {
-  for (const c of crystals) {
-    const t = c.userData.type || "crystal";
-
-    if (c.userData.resolved) {
-      // Resolved objects pulse calmly
-      if (c.userData.ring && c.userData.ring.material) {
-        c.userData.ring.material.opacity = 0.1 + Math.sin(time * 1.0) * 0.05;
-      }
-      if (t === "crystal") c.userData.mesh.rotation.y = time * 0.3;
-      continue;
-    }
-
-    if (t === "crystal") {
-      // Original glowing octahedron animation
-      c.userData.mesh.rotation.y = time * 0.7;
-      c.userData.mesh.rotation.x = Math.sin(time * 0.5) * 0.1;
-      c.userData.mesh.position.y = 1.4 + Math.sin(time * 1.8 + c.position.x) * 0.12;
-      c.userData.ring.material.opacity = 0.4 + Math.sin(time * 2.5) * 0.15;
-      c.userData.innerRing.material.opacity = 0.5 + Math.sin(time * 2.5 + 1) * 0.15;
-      c.userData.beam.material.opacity = 0.12 + Math.sin(time * 1.5) * 0.06;
-    } else if (t === "skytrain") {
-      // Train slides along the track
-      const train = c.userData.trainGroup;
-      train.position.x = Math.sin(time * 0.5) * 2.5;
-      // Subtle pulsing glow ring
-      c.userData.ring.material.opacity = 0.35 + Math.sin(time * 2) * 0.12;
-    } else if (t === "longhouse") {
-      // Animate flickering flame
-      const flame = c.userData.flame;
-      flame.scale.set(
-        0.9 + Math.sin(time * 8) * 0.15,
-        0.85 + Math.sin(time * 7) * 0.2,
-        0.9 + Math.cos(time * 9) * 0.15
-      );
-      flame.rotation.y = Math.sin(time * 3) * 0.2;
-      const fireLight = c.userData.fireLight;
-      fireLight.intensity = 0.7 + Math.sin(time * 10) * 0.3;
-      c.userData.ring.material.opacity = 0.35 + Math.sin(time * 2) * 0.12;
-    }
+    closeBtn.textContent = 'Continue exploring';
   }
 }
 
-function animateSmoke(time) {
-  scene.traverse((obj) => {
-    if (obj.userData && obj.userData.smoke) {
-      const baseX = obj.userData.smoke.baseX !== undefined ? obj.userData.smoke.baseX : obj.position.x;
-      if (obj.userData.smoke.baseX === undefined) obj.userData.smoke.baseX = obj.position.x;
-      obj.position.y = obj.userData.smoke.baseY + Math.sin(time * 0.6 + obj.userData.smoke.phase) * 0.15;
-      obj.position.x = obj.userData.smoke.baseX + Math.sin(time * 0.4 + obj.userData.smoke.phase) * 0.08;
-    }
-  });
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  const time = clock.getElapsedTime();
-  if (gameState.started) {
-    updatePlayer(delta);
-    animateCrystals(time);
-    animateSmoke(time);
+document.querySelectorAll('.choice').forEach(b => {
+  b.addEventListener('click', () => chooseAnswer(b.getAttribute('data-choice')));
+});
+closeBtn.addEventListener('click', () => {
+  closeScenario();
+  if (STATE.resolved.size === SCENARIOS.length) {
+    showFinalScreen();
   }
-  renderer.render(scene, camera);
+});
+
+function updateHUD() {
+  document.getElementById('resolvedCount').textContent = STATE.resolved.size;
+  document.getElementById('score').textContent = STATE.score;
+  const dots = document.querySelectorAll('#dots .dot');
+  let i = 0;
+  for (const s of SCENARIOS) {
+    if (STATE.resolved.has(s.id)) dots[i].classList.add('filled');
+    else dots[i].classList.remove('filled');
+    i++;
+  }
 }
 
-// ====================== LIFECYCLE ======================
-function startGame() {
-  document.getElementById("intro").classList.add("hidden");
-  document.getElementById("hud").classList.remove("hidden");
-  document.getElementById("controls-hint").classList.remove("hidden");
-  document.getElementById("music-toggle").classList.remove("hidden");
-  gameState.started = true;
-  updateCrystalDots();
-  // Force keyboard focus to canvas so WASD works immediately
-  setTimeout(() => {
-    const canvas = document.getElementById("canvas");
-    canvas.focus();
-  }, 100);
-  // Start music after user gesture (browser autoplay policy)
-  if (musicEnabled) startMusic();
+/* ============================================================
+   FINAL SCREEN
+   ============================================================ */
+function showFinalScreen() {
+  const score = STATE.score;
+  let tier = 'Climate Apprentice', medal = '🌱';
+  if (score >= 90) { tier = 'Climate Strategist'; medal = '🏆'; }
+  else if (score >= 70) { tier = 'Climate Analyst'; medal = '🌟'; }
+  else if (score >= 50) { tier = 'Climate Trainee'; medal = '🔥'; }
+  document.getElementById('medal').textContent = medal;
+  document.getElementById('tierLabel').textContent = tier;
+  document.getElementById('fScore').textContent = score;
+  document.getElementById('fCorrect').textContent = STATE.correct + '/5';
+  document.getElementById('finalScreen').style.display = 'flex';
+  STATE.paused = true;
 }
 
-// ====================== AMBIENT MUSIC ======================
-// Procedurally generated soft drone using Web Audio API.
-// No external files needed — works offline.
-let audioCtx = null;
-let musicNodes = null;
-let musicEnabled = true;
+document.getElementById('restartBtn').addEventListener('click', () => {
+  // Reset state
+  STATE.resolved.clear();
+  STATE.score = 0;
+  STATE.correct = 0;
+  STATE.fogDensity = 0.015;
+  scene.fog.density = STATE.fogDensity;
+  for (const lm of landmarks) {
+    lm.glowRing.material.opacity = 0.65;
+    lm.glowRing.material.color.set(0xff4a96);
+    if (lm.light) lm.light.intensity = lm.light.userData.baseIntensity || 0.5;
+  }
+  player.position.set(0, 1.4, 0);
+  updateHUD();
+  document.getElementById('finalScreen').style.display = 'none';
+  STATE.paused = false;
+  try { canvas.focus(); } catch (e) {}
+});
+
+/* ============================================================
+   PROCEDURAL MUSIC — Web Audio API
+   Warm folk-pad in D major + slow pentatonic melody
+   ============================================================ */
+let audio = null;
+let musicOn = true;
+let melodyTimeout = null;
 
 function startMusic() {
-  if (musicNodes) return; // already playing
+  if (audio) return;
   try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-
-    const master = audioCtx.createGain();
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const master = ctx.createGain();
     master.gain.value = 0;
-    master.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 2);
-    master.connect(audioCtx.destination);
+    master.connect(ctx.destination);
 
-    // Soft low-pass to keep things calm
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 800;
-    filter.Q.value = 0.8;
-    filter.connect(master);
+    // Master low-pass for warmth
+    const masterLP = ctx.createBiquadFilter();
+    masterLP.type = 'lowpass';
+    masterLP.frequency.value = 1400;
+    masterLP.Q.value = 0.4;
+    masterLP.connect(master);
 
-    // Reverb-style delay
-    const delay = audioCtx.createDelay(5);
-    delay.delayTime.value = 0.45;
-    const delayFb = audioCtx.createGain();
-    delayFb.gain.value = 0.35;
-    delay.connect(delayFb);
-    delayFb.connect(delay);
-    delay.connect(filter);
+    // Delay / pseudo-reverb
+    const delay = ctx.createDelay(2.0);
+    delay.delayTime.value = 0.6;
+    const feedback = ctx.createGain();
+    feedback.gain.value = 0.4;
+    const delayMix = ctx.createGain();
+    delayMix.gain.value = 0.35;
+    delay.connect(feedback);
+    feedback.connect(delay);
+    delay.connect(delayMix);
+    delayMix.connect(masterLP);
 
-    // Two layered drones in a calm interval (perfect fifth)
-    // Soft Cmaj atmosphere — meditative, calm
-    const freqs = [110, 165, 220, 329.63]; // A2, E3, A3, E4 — open fifth ambient
-    const oscs = [];
-    for (let i = 0; i < freqs.length; i++) {
-      const osc = audioCtx.createOscillator();
-      osc.type = i % 2 === 0 ? "sine" : "triangle";
-      osc.frequency.value = freqs[i];
-      // Slight detune per osc for chorus richness
-      osc.detune.value = (Math.random() - 0.5) * 8;
+    // Pad chord — D3, A3, F#4
+    const padFreqs = [146.83, 220.00, 369.99];
+    const padGain = ctx.createGain();
+    padGain.gain.value = 0.12;
+    padGain.connect(masterLP);
+    padGain.connect(delay);
 
-      const oscGain = audioCtx.createGain();
-      oscGain.gain.value = 0.18 / freqs.length * 4;
-      osc.connect(oscGain);
-      oscGain.connect(filter);
-      oscGain.connect(delay);
+    // LFO for tremolo
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.18;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.04;
+    lfo.connect(lfoGain);
+    lfoGain.connect(padGain.gain);
+    lfo.start();
 
-      // Slow tremolo
-      const lfo = audioCtx.createOscillator();
-      lfo.frequency.value = 0.08 + Math.random() * 0.1;
-      const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = 0.06;
-      lfo.connect(lfoGain);
-      lfoGain.connect(oscGain.gain);
-      lfo.start();
+    const padOscs = [];
+    padFreqs.forEach((f) => {
+      const o = ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      o.connect(padGain);
+      o.start();
+      padOscs.push(o);
+      // Slight detune partner for thickness
+      const o2 = ctx.createOscillator();
+      o2.type = 'triangle';
+      o2.frequency.value = f * 1.005;
+      const g2 = ctx.createGain();
+      g2.gain.value = 0.5;
+      o2.connect(g2);
+      g2.connect(padGain);
+      o2.start();
+      padOscs.push(o2);
+    });
 
-      osc.start();
-      oscs.push({ osc, gain: oscGain, lfo });
+    // Melody on D pentatonic
+    const PENTA = [293.66, 329.63, 369.99, 440.00, 493.88, 587.33, 659.25, 739.99];
+    function playMelodyNote() {
+      if (!musicOn || !audio) return;
+      const f = PENTA[Math.floor(Math.random() * PENTA.length)];
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.value = f;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1200;
+      lp.Q.value = 4;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.06, t + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+      osc.connect(lp); lp.connect(g);
+      g.connect(masterLP);
+      g.connect(delay);
+      osc.start(t);
+      osc.stop(t + 1.8);
+      const next = 2500 + Math.random() * 1500;
+      melodyTimeout = setTimeout(playMelodyNote, next);
     }
+    melodyTimeout = setTimeout(playMelodyNote, 2000);
 
-    // A gentle sparkle melody — occasional bell-like notes
-    const sparkleOsc = audioCtx.createOscillator();
-    sparkleOsc.type = "sine";
-    sparkleOsc.frequency.value = 880;
-    const sparkleGain = audioCtx.createGain();
-    sparkleGain.gain.value = 0;
-    sparkleOsc.connect(sparkleGain);
-    sparkleGain.connect(delay);
-    sparkleOsc.start();
+    // Fade in over 2s
+    master.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 2.0);
 
-    // Schedule occasional gentle bells
-    function scheduleBell() {
-      if (!musicNodes) return;
-      const pentatonic = [880, 988, 1109, 1319, 1480]; // A pentatonic, two octaves up
-      const f = pentatonic[Math.floor(Math.random() * pentatonic.length)];
-      sparkleOsc.frequency.setValueAtTime(f, audioCtx.currentTime);
-      sparkleGain.gain.cancelScheduledValues(audioCtx.currentTime);
-      sparkleGain.gain.setValueAtTime(0, audioCtx.currentTime);
-      sparkleGain.gain.linearRampToValueAtTime(0.025, audioCtx.currentTime + 0.05);
-      sparkleGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.5);
-      setTimeout(scheduleBell, 4000 + Math.random() * 6000);
-    }
-    setTimeout(scheduleBell, 3000);
-
-    musicNodes = { master, filter, delay, delayFb, oscs, sparkleOsc, sparkleGain };
+    audio = { ctx, master, padOscs, padGain, lfo };
   } catch (e) {
-    console.warn("Audio init failed:", e);
+    // Audio unavailable — silently continue
+    audio = null;
   }
 }
 
-function stopMusic() {
-  if (!musicNodes) return;
+function setMusic(on) {
+  musicOn = on;
+  if (!audio) return;
   try {
-    musicNodes.master.gain.cancelScheduledValues(audioCtx.currentTime);
-    musicNodes.master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
-    setTimeout(() => {
-      for (const o of musicNodes.oscs) { try { o.osc.stop(); o.lfo.stop(); } catch (e) {} }
-      try { musicNodes.sparkleOsc.stop(); } catch (e) {}
-      musicNodes = null;
-    }, 700);
-  } catch (e) { /* ignore */ }
+    const target = on ? 0.08 : 0.0;
+    audio.master.gain.cancelScheduledValues(audio.ctx.currentTime);
+    audio.master.gain.linearRampToValueAtTime(target, audio.ctx.currentTime + 0.5);
+  } catch (e) {}
 }
 
-function toggleMusic() {
-  musicEnabled = !musicEnabled;
-  document.getElementById("music-icon").textContent = musicEnabled ? "🔊" : "🔈";
-  document.getElementById("music-label").textContent = musicEnabled ? "Music: On" : "Music: Off";
-  if (musicEnabled) startMusic();
-  else stopMusic();
+document.getElementById('musicToggle').addEventListener('click', () => {
+  musicOn = !musicOn;
+  document.getElementById('musicToggle').textContent = musicOn ? '🔊 Music: On' : '🔇 Music: Off';
+  setMusic(musicOn);
+});
+
+/* ============================================================
+   GAME LOOP
+   ============================================================ */
+const clock = new THREE.Clock();
+const PLAYER_SPEED = 5.0;
+const ISLAND_R = 22.5;
+let walkPhase = 0;
+
+function updatePlayer(dt) {
+  if (STATE.paused) return;
+  // Camera-relative direction: camera looks at player from +X,+Z toward origin
+  // So "up" (W) on screen should move the player away from the camera
+  let mx = 0, mz = 0;
+  if (input.up)    mz -= 1;
+  if (input.down)  mz += 1;
+  if (input.left)  mx -= 1;
+  if (input.right) mx += 1;
+
+  // Map screen-up to away-from-camera direction
+  // Camera is at +X,+Z so up-screen ≈ (-X, -Z)
+  const camDirX = -1, camDirZ = -1;
+  const camRightX = -1, camRightZ = 1;
+  const len = Math.hypot(camDirX, camDirZ);
+  const cx = camDirX / len, cz = camDirZ / len;
+  const rx = camRightX / Math.hypot(camRightX, camRightZ);
+  const rz = camRightZ / Math.hypot(camRightX, camRightZ);
+
+  const moveX = (-mz) * cx + mx * rx;
+  const moveZ = (-mz) * cz + mx * rz;
+
+  const moving = (mx !== 0 || mz !== 0);
+  if (moving) {
+    const mag = Math.hypot(moveX, moveZ);
+    const nx = moveX / mag;
+    const nz = moveZ / mag;
+    player.position.x += nx * PLAYER_SPEED * dt;
+    player.position.z += nz * PLAYER_SPEED * dt;
+
+    // Clamp to island
+    const d = Math.hypot(player.position.x, player.position.z);
+    if (d > ISLAND_R) {
+      player.position.x *= ISLAND_R / d;
+      player.position.z *= ISLAND_R / d;
+    }
+
+    // Smooth rotation toward movement direction
+    const targetAngle = Math.atan2(nx, nz);
+    let cur = player.rotation.y;
+    let diff = targetAngle - cur;
+    while (diff >  Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    player.rotation.y += diff * Math.min(1, dt * 10);
+
+    walkPhase += dt * 9;
+  } else {
+    walkPhase *= Math.max(0, 1 - dt * 6);
+  }
+
+  // Walk animation
+  const swing = moving ? Math.sin(walkPhase) * 0.55 : 0;
+  if (playerParts.legL) playerParts.legL.rotation.x =  swing;
+  if (playerParts.legR) playerParts.legR.rotation.x = -swing;
+  if (playerParts.armL) playerParts.armL.rotation.x = -swing * 0.8;
+  if (playerParts.armR) playerParts.armR.rotation.x =  swing * 0.8;
+  // Slight vertical bob
+  const bob = moving ? Math.abs(Math.sin(walkPhase)) * 0.06 : 0;
+  if (playerParts.torso) playerParts.torso.position.y = 1.6 + bob;
 }
 
-window.addEventListener("resize", () => {
+function updateCamera() {
+  const desired = new THREE.Vector3(
+    player.position.x + 16,
+    player.position.y + 13,
+    player.position.z + 16
+  );
+  camera.position.lerp(desired, 0.06);
+  camera.lookAt(player.position.x, player.position.y + 0.5, player.position.z);
+}
+
+function animateLandmarks(t) {
+  for (const lm of landmarks) {
+    lm.pulseT += 0.04;
+    lm.arrowT += 0.05;
+    const resolved = STATE.resolved.has(lm.id);
+
+    if (!resolved) {
+      // Pulse the glow ring
+      const pulse = 1.0 + Math.sin(lm.pulseT) * 0.08;
+      lm.glowRing.scale.set(pulse, pulse, pulse);
+      lm.glowRing.material.opacity = 0.45 + Math.sin(lm.pulseT) * 0.15;
+
+      // Bob + spin the floating arrow
+      if (lm.arrow) {
+        const bob = lm.arrow.userData.bob;
+        if (bob) {
+          bob.position.y = Math.sin(lm.arrowT) * 0.35;
+          bob.rotation.y += 0.012;
+          const s = 1.0 + Math.sin(lm.arrowT * 1.4) * 0.06;
+          bob.scale.set(s, s, s);
+        }
+        lm.arrow.visible = true;
+      }
+    } else if (lm.arrow) {
+      // Once resolved, hide the arrow (the diamond is now "found")
+      lm.arrow.visible = false;
+    }
+
+    if (lm.animate) lm.animate(t);
+  }
+}
+
+function updateRiver(t) {
+  for (const r of riverNodes) {
+    r.mesh.material.opacity = 0.78 + Math.sin(t * 1.5 + r.phase) * 0.08;
+  }
+}
+
+/* Proximity hint: if the player is near an unresolved landmark, project that
+   landmark's world position to screen space and show a floating tooltip. */
+const _proxHintEl   = document.getElementById('proxHint');
+const _proxHintText = document.getElementById('proxHintText');
+const _proxWorld    = new THREE.Vector3();
+const _proxScreen   = new THREE.Vector3();
+const PROX_RADIUS   = 9.0;   // how close player must be (world units)
+let _proxCurrentId  = null;
+
+function updateProximityHint() {
+  if (!STATE.started || STATE.paused) {
+    _proxHintEl.style.display = 'none';
+    _proxCurrentId = null;
+    return;
+  }
+
+  // Find nearest unresolved landmark within range
+  let nearest = null;
+  let nearestDist = PROX_RADIUS;
+  for (const lm of landmarks) {
+    if (STATE.resolved.has(lm.id)) continue;
+    const dx = lm.group.position.x - player.position.x;
+    const dz = lm.group.position.z - player.position.z;
+    const d = Math.hypot(dx, dz);
+    if (d < nearestDist) {
+      nearestDist = d;
+      nearest = lm;
+    }
+  }
+
+  if (!nearest) {
+    _proxHintEl.style.display = 'none';
+    _proxCurrentId = null;
+    return;
+  }
+
+  // Get the world position of the arrow (top of landmark)
+  _proxWorld.set(
+    nearest.group.position.x,
+    nearest.group.position.y + 8.4,
+    nearest.group.position.z
+  );
+  _proxScreen.copy(_proxWorld).project(camera);
+  // Behind camera? skip
+  if (_proxScreen.z > 1) {
+    _proxHintEl.style.display = 'none';
+    return;
+  }
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const sx = (_proxScreen.x * 0.5 + 0.5) * w;
+  const sy = (-_proxScreen.y * 0.5 + 0.5) * h;
+
+  // Update text only when target changes (prevents re-rendering each frame)
+  if (_proxCurrentId !== nearest.id) {
+    const s = SCENARIO_BY_ID[nearest.id];
+    _proxHintText.textContent = s.hint || s.title;
+    _proxCurrentId = nearest.id;
+  }
+  _proxHintEl.style.left = sx + 'px';
+  _proxHintEl.style.top  = sy + 'px';
+  _proxHintEl.style.display = 'inline-block';
+}
+
+function animateFrame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  updatePlayer(dt);
+  updateCamera();
+  animateLandmarks(t);
+  updateRiver(t);
+  updateProximityHint();
+
+  // Cabin smoke continues even without LNG/longhouse being active
+  cabinSmoke.update();
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animateFrame);
+}
+
+/* ============================================================
+   LIFECYCLE — resize, init, start
+   ============================================================ */
+function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', onResize);
+
+// Build the world
+buildIsland();
+buildOcean();
+buildRiver();
+buildForest();
+buildRocks();
+buildLogs();
+buildMountains();
+buildLighthouse();
+buildCabin();
+buildDock();
+buildSkyTrain();
+buildLonghouse();
+buildSalmonStream();
+buildLNG();
+buildHeatZone();
+
+// Store base light intensities for reset
+for (const lm of landmarks) {
+  if (lm.light) lm.light.userData.baseIntensity = lm.light.intensity;
+}
+
+updateHUD();
+animateFrame();
+
+// Start button
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('intro').style.display = 'none';
+  STATE.started = true;
+  STATE.paused = false;
+  startMusic();
+  try { canvas.focus(); } catch (e) {}
+
+  // Brief onboarding nudge — fades in then out after a few seconds
+  const tip = document.getElementById('onboardTip');
+  tip.classList.add('show');
+  setTimeout(() => { tip.classList.remove('show'); }, 5500);
 });
 
-function boot() {
-  initScene();
-  document.getElementById("total-count").textContent = SCENARIOS.length;
-  updateCrystalDots();
-  setTimeout(() => {
-    document.getElementById("loading").classList.add("hidden");
-    animate();
-  }, 600);
-}
-boot();
+// Always re-focus canvas on click for keyboard reliability
+canvas.addEventListener('mousedown', () => {
+  try { canvas.focus(); } catch (e) {}
+});
+
+// First-frame focus attempt
+try { canvas.focus(); } catch (e) {}
+
 </script>
 </body>
 </html>
