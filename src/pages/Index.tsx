@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ClimateExplorer } from "@/components/ClimateExplorer";
 import { ClimateGame } from "@/components/ClimateGame";
 import { VoiceAssistant } from "@/components/VoiceAssistant";
-import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout, Music } from "lucide-react";
+import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout, Music, User } from "lucide-react";
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 
 const LYRICS: { time: number; text: string }[] = [
   { time: 13, text: "Morning light through the cedar trees," },
@@ -142,6 +143,9 @@ const Index = () => {
               <a href="/gaiathinker-3d.html" target="_blank" rel="noopener noreferrer"><Gamepad2 className="mr-2 h-4 w-4" /> Play the Game</a>
             </Button>
             <ClimateMusicButton />
+            <Button size="lg" className="bg-ember text-ember-foreground hover:bg-ember/90" asChild>
+              <Link to="/about"><User className="mr-2 h-4 w-4" /> Meet the Creator</Link>
+            </Button>
           </div>
           <div className="mt-10 flex flex-wrap gap-6 text-sm text-white/80">
             <span>⏱ 75–90 minutes</span>
