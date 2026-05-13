@@ -23,12 +23,12 @@ const About = () => {
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to GaiaThinker
         </Link>
 
-        <div className="grid md:grid-cols-[320px_1fr] gap-10 items-start">
+        <div className="grid md:grid-cols-[440px_1fr] gap-12 items-start">
           <div className="flex flex-col items-center md:items-start">
             <img
               src={portrait}
               alt="Portrait of Ali Farshad Fard"
-              className="w-full max-w-xs rounded-2xl shadow-soft object-cover"
+              className="w-full max-w-md rounded-2xl shadow-soft object-cover"
             />
             <p className="mt-4 text-center md:text-left text-base italic text-muted-foreground">
               "Together we can make something great."
@@ -50,23 +50,20 @@ const About = () => {
                 Let's Connect
               </h2>
 
-              <div
+              <Button
+                size="lg"
                 data-fillout-id="umzMEFUqxSus"
                 data-fillout-embed-type="popup"
-                data-fillout-dynamic-resize
-                data-fillout-inherit-parameters
+                data-fillout-dynamic-resize="true"
+                data-fillout-inherit-parameters="true"
                 data-fillout-popup-size="medium"
+                className="text-white hover:opacity-90 transition"
+                style={{
+                  background: "linear-gradient(135deg, #8b5cf6 0%, #14b8a6 100%)",
+                }}
               >
-                <Button
-                  size="lg"
-                  className="text-white hover:opacity-90 transition"
-                  style={{
-                    background: "linear-gradient(135deg, #8b5cf6 0%, #14b8a6 100%)",
-                  }}
-                >
-                  <CalendarDays className="mr-2 h-4 w-4" /> Book an Appointment
-                </Button>
-              </div>
+                <CalendarDays className="mr-2 h-4 w-4" /> Book an Appointment
+              </Button>
 
               <p className="mt-3 text-sm text-muted-foreground max-w-md">
                 Schedule a free consultation to explore AI solutions for education and sustainability.
