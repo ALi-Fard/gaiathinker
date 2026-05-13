@@ -1,9 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { Mail, Linkedin, ArrowLeft } from "lucide-react";
+import { Mail, Linkedin, ArrowLeft, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import portrait from "@/assets/ali-farshad-fard.jpg";
+import { useEffect } from "react";
 
 const About = () => {
+  useEffect(() => {
+    const existing = document.getElementById("fillout-script");
+    if (!existing) {
+      const script = document.createElement("script");
+      script.id = "fillout-script";
+      script.src = "https://server.fillout.com/embed/v1/";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-glacier/50 via-background to-background">
       <div className="container max-w-5xl py-12 md:py-20">
@@ -37,22 +49,45 @@ const About = () => {
               <h2 className="text-2xl font-bold text-foreground mb-4" style={{ fontFamily: "Fraunces, serif" }}>
                 Let's Connect
               </h2>
-              <ul className="space-y-3 text-base">
+
+              <div
+                data-fillout-id="umzMEFUqxSus"
+                data-fillout-embed-type="popup"
+                data-fillout-dynamic-resize
+                data-fillout-inherit-parameters
+                data-fillout-popup-size="medium"
+              >
+                <Button
+                  size="lg"
+                  className="text-white hover:opacity-90 transition"
+                  style={{
+                    background: "linear-gradient(135deg, #8b5cf6 0%, #14b8a6 100%)",
+                  }}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" /> Book an Appointment
+                </Button>
+              </div>
+
+              <p className="mt-3 text-sm text-muted-foreground max-w-md">
+                Schedule a free consultation to explore AI solutions for education and sustainability.
+              </p>
+
+              <ul className="mt-6 space-y-3 text-base">
                 <li className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-ocean" />
-                  <a href="mailto:ali.reza.farshad.fard@gaialink.ca" className="text-foreground hover:text-ocean transition">
-                    ali.reza.farshad.fard@gaialink.ca
+                  <a href="mailto:alireza.farshadfard@gmail.com" className="text-foreground hover:text-ocean transition">
+                    alireza.farshadfard@gmail.com
                   </a>
                 </li>
                 <li className="flex items-center gap-3">
                   <Linkedin className="h-5 w-5 text-ocean" />
                   <a
-                    href="https://www.linkedin.com/in/alifarshadfard"
+                    href="https://www.linkedin.com/in/a-farshadfard/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-foreground hover:text-ocean transition"
                   >
-                    linkedin.com/in/alifarshadfard
+                    linkedin.com/in/a-farshadfard
                   </a>
                 </li>
               </ul>
@@ -60,7 +95,7 @@ const About = () => {
 
             <div className="mt-10">
               <Button size="lg" className="bg-ember text-ember-foreground hover:bg-ember/90" asChild>
-                <a href="mailto:ali.reza.farshad.fard@gaialink.ca">
+                <a href="mailto:alireza.farshadfard@gmail.com">
                   <Mail className="mr-2 h-4 w-4" /> Get in Touch
                 </a>
               </Button>
