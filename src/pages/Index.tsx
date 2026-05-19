@@ -110,7 +110,14 @@ const Index = () => {
             <a href="#explorer" className="hover:text-white transition">Explorer</a>
             <a href="#game" className="hover:text-white transition">Game</a>
             <a href="#goals" className="hover:text-white transition">Educators</a>
-            <a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">gaialink.ca ↗</a>
+            <Link
+              to="/wildfire"
+              className="rounded-full px-4 py-1.5 font-semibold text-white shadow-md hover:scale-105 transition"
+              style={{ background: "#ff6b35" }}
+            >
+              🔥 Join Team Challenge
+            </Link>
+            <a href="https://gaiasystems.ca" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">gaiasystems.ca ↗</a>
           </div>
         </div>
       </nav>
@@ -299,7 +306,7 @@ const Index = () => {
                 GaiaThinker
               </div>
               <p className="text-sm text-background/70">
-                A learning experience by <a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="text-sun hover:underline">Gaialink Intelligence Systems Inc.</a> — building thoughtful tools for environmental learning.
+                A learning experience by <a href="https://gaiasystems.ca" target="_blank" rel="noopener noreferrer" className="text-sun hover:underline">Gaialink Intelligence Systems Inc.</a> — building thoughtful tools for environmental learning.
               </p>
             </div>
             <div>
@@ -315,7 +322,7 @@ const Index = () => {
             <div>
               <h3 className="font-semibold mb-3 text-sun">Connect</h3>
               <ul className="space-y-1.5 text-sm text-background/70">
-                <li><a href="https://gaialink.ca" target="_blank" rel="noopener noreferrer" className="hover:text-background transition">gaialink.ca ↗</a></li>
+                <li><a href="https://gaiasystems.ca" target="_blank" rel="noopener noreferrer" className="hover:text-background transition">gaiasystems.ca ↗</a></li>
                 <li>Designed for the New Westminster School District (SD40)</li>
                 <li>BC curriculum aligned · 2024</li>
               </ul>
