@@ -251,23 +251,15 @@ const WildfireGame = () => {
     return () => clearTimeout(t);
   }, [phase, shownCards, socraticQs]);
 
-  const showEmberPhase5 = () => {
-    setEmberMsg(`Wow — your team put together a real strategy! 🦉📋\n\nI've read through your solution and I have some thoughts. Some things you did really well, and one or two things worth reconsidering.\n\n👉 Want Professor Ember's honest feedback?`);
-    setEmberActions([
-      {
-        label: "✅ Yes! Give us your feedback, Professor Ember",
-        onClick: async () => {
-          setLoadingFb(true);
-          setEmberMsg("Reading your strategy... 🦉");
-          setEmberActions(undefined);
-          const txt = await callEmber("feedback");
-          setFeedback(txt || FALLBACK_FEEDBACK({ budget }));
-          setLoadingFb(false);
-          setEmberMsg(null);
-        },
-      },
-      { label: "⏭ We're confident — show real-world comparison", variant: "outline", onClick: () => { setFeedback(FALLBACK_FEEDBACK({ budget })); setEmberMsg(null); } },
-    ]);
+  // Auto-trigger Ember feedback at the start of Phase 5
+  const autoTriggerFeedback = async () => {
+    setEmberMsg(null);
+    setEmberActions(undefined);
+    setLoadingFb(true);
+    setFeedback(null);
+    const txt = await callEmber("feedback");
+    setFeedback(txt || FALLBACK_FEEDBACK({ budget }));
+    setLoadingFb(false);
   };
 
   const showEmberPhase6 = () => {
@@ -277,8 +269,24 @@ const WildfireGame = () => {
 
   const sendChat = () => {
     if (!chatInput.trim()) return;
-    setChat((c) => [...c, { name: "You", color: "#2d5a3d", text: chatInput.trim() }]);
+    const msg = chatInput.trim();
+    setChat((c) => [...c, { name: "You", color: "#2d5a3d", text: msg }]);
     setChatInput("");
+    lastUserMsgAtRef.current = Date.now();
+    triggerDemoResponse(msg);
+  };
+
+  // Floating "Ask Professor Ember" handler — context-aware
+  const handleAskEmber = async () => {
+    if (phase >= 3) {
+      setEmberMsg("Professor Ember is thinking... 🦉");
+      setEmberActions(undefined);
+      const txt = await callEmber("feedback");
+      setEmberMsg(txt || FALLBACK_FEEDBACK({ budget }));
+      setEmberActions([{ label: "Thanks, Professor!", onClick: () => setEmberMsg(null) }]);
+    } else {
+      showEmberPhase3();
+    }
   };
 
   // Score calculation
