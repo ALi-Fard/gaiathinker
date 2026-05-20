@@ -92,9 +92,12 @@ const WildfireGame = () => {
   // Phase 2 state
   const [whiteboard, setWhiteboard] = useState("");
   const [chat, setChat] = useState<{ name: string; color: string; text: string }[]>([
-    { name: "Priya", color: "#0089cf", text: "Where should we start? Indigenous partnerships feel important." },
+    { name: "Priya", color: "#9b5de5", text: "Hey team! Where should we start? I keep thinking about Indigenous partnerships." },
+    { name: "Jordan", color: "#0089cf", text: "Sounds good — but we also need to think about cost and what's actually doable in 2 years." },
   ]);
   const [chatInput, setChatInput] = useState("");
+  const lastUserMsgAtRef = useRef<number>(Date.now());
+  const aiBusyRef = useRef(false);
 
   // Phase 3 state
   const [socraticQs, setSocraticQs] = useState<string[]>([]);
