@@ -408,13 +408,27 @@ const WildfireGame = () => {
             </Card>
             <Card className="p-4 flex flex-col">
               <div className="font-bold mb-2" style={{ color: "#2d5a3d" }}>💬 Team Chat</div>
+              <div className="text-[11px] px-2 py-1.5 mb-2 rounded bg-glacier/40 border" style={{ borderColor: "#2d5a3d" }}>
+                🎭 Demo Mode — AI teammates are simulating a real student discussion
+              </div>
               <div className="flex-1 min-h-[300px] max-h-[400px] overflow-y-auto space-y-2 mb-3 text-sm">
-                {chat.map((c, i) => (
-                  <div key={i}>
-                    <span className="font-semibold" style={{ color: c.color }}>{c.name}:</span>{" "}
-                    <span>{c.text}</span>
-                  </div>
-                ))}
+                {chat.map((c, i) => {
+                  const initial = c.name === "You" ? "Y" : c.name[0];
+                  return (
+                    <div key={i} className="flex gap-2 items-start">
+                      <span
+                        className="h-6 w-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
+                        style={{ background: c.color }}
+                      >
+                        {initial}
+                      </span>
+                      <div>
+                        <span className="font-semibold" style={{ color: c.color }}>{c.name}</span>
+                        <div>{c.text}</div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
               <div className="flex gap-2">
                 <Input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Share your thoughts..." onKeyDown={(e) => e.key === "Enter" && sendChat()} />
