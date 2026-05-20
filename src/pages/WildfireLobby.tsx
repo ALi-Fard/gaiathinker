@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -98,8 +99,21 @@ const WildfireLobby = () => {
                     <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy Code
                   </Button>
                 </div>
+                {members.length < 4 && (
+                  <div className="flex flex-col items-center bg-white rounded-xl p-4 border">
+                    <QRCodeSVG
+                      value={`https://gaiathinker.gaiasystems.ca/join?code=${code}`}
+                      size={200}
+                      bgColor="#ffffff"
+                      fgColor="#2d5a3d"
+                      level="H"
+                    />
+                    <div className="text-xs text-muted-foreground mt-3 text-center">
+                      📷 Scan to join on your phone or tablet
+                    </div>
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm"><QrCode className="h-3.5 w-3.5 mr-1.5" /> QR</Button>
                   <Button variant="outline" size="sm"><Mail className="h-3.5 w-3.5 mr-1.5" /> Email</Button>
                   <Button variant="outline" size="sm"><BookOpen className="h-3.5 w-3.5 mr-1.5" /> Google Classroom</Button>
                 </div>
