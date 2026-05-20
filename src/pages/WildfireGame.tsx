@@ -647,7 +647,7 @@ const WildfireGame = () => {
       </button>
 
       {showAskBtn && !emberMsg && (
-        <AskEmberButton onClick={() => showEmberPhase3()} />
+        <AskEmberButton onClick={handleAskEmber} />
       )}
 
       {emberMsg && (
