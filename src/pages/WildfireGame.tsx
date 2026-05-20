@@ -126,21 +126,26 @@ const WildfireGame = () => {
     setPhase((p) => Math.min(p + 1, 6));
   };
 
-  // Show ember at phase 3 start
+  // Show ember at phase 3 start; auto-trigger feedback when entering Phase 5
   useEffect(() => {
     if (phase >= 2) setShowAskBtn(true); else setShowAskBtn(false);
     if (phase === 2) showEmberPhase3();
-    if (phase === 4) showEmberPhase5();
+    if (phase === 4) {
+      // Auto-fire feedback at start of Phase 5 (no button click required)
+      autoTriggerFeedback();
+    }
     if (phase === 5) showEmberPhase6();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  const callEmber = async (mode: "socratic" | "feedback") => {
+  const callEmber = async (mode: "socratic" | "feedback" | "priya" | "jordan", extra?: Record<string, unknown>) => {
     try {
       const { data, error } = await supabase.functions.invoke("professor-ember", {
         body: mode === "socratic"
           ? { mode, whiteboard, chat: chat.map((c) => `${c.name}: ${c.text}`).join("\n") }
-          : { mode, solution: { strategy, budget, equity, metrics, risk } },
+          : mode === "feedback"
+          ? { mode, solution: { strategy, budget, equity, metrics, risk, chatHistory: chat.map((c) => `${c.name}: ${c.text}`).join("\n") } }
+          : { mode, ...extra },
       });
       if (error) throw error;
       return (data as any)?.text || null;
@@ -149,6 +154,69 @@ const WildfireGame = () => {
       return null;
     }
   };
+
+  // ---------- DEMO MODE: Priya + Jordan AI teammates ----------
+  const PRIYA_FALLBACKS = [
+    "I think we need to talk more about the Indigenous partnerships piece. The Secwépemc Nation has been doing this for thousands of years — how do we actually listen to them?",
+    "Who gets left behind in our plan? I keep thinking about elderly people who can't evacuate on their own.",
+    "What happens if we spend all our money on tech and then the cell towers go down during the fire?",
+  ];
+  const JORDAN_FALLBACKS = [
+    "I hear you, but we also have to be realistic about jobs. 25,000 forestry workers depend on these forests.",
+    "That sounds expensive. How do we know it'll actually work before we spend $20M on it?",
+    "I think we need to prioritize things we can actually implement in 2 years, not just ideal solutions.",
+  ];
+  const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+  const respondAsPersona = async (persona: "priya" | "jordan", userMessage: string, lastMessage: string) => {
+    const color = persona === "priya" ? "#9b5de5" : "#0089cf";
+    const name = persona === "priya" ? "Priya" : "Jordan";
+    const txt = await callEmber(persona, { userMessage, lastMessage });
+    const finalText = txt || pick(persona === "priya" ? PRIYA_FALLBACKS : JORDAN_FALLBACKS);
+    setChat((c) => [...c, { name, color, text: finalText }]);
+  };
+
+  // Trigger demo responses when user sends a chat message
+  const triggerDemoResponse = (userMsg: string) => {
+    if (aiBusyRef.current) return;
+    aiBusyRef.current = true;
+    const lower = userMsg.toLowerCase();
+    const priyaTrigger = /(indigen|first nation|communit|people|equit|cultur)/i.test(lower);
+    const jordanTrigger = /(money|budget|job|cost|industr|timber|econom)/i.test(lower);
+    // Default: at least one always responds for demo richness
+    const priyaWillRespond = priyaTrigger || (!priyaTrigger && !jordanTrigger);
+    const jordanWillRespond = jordanTrigger || priyaWillRespond;
+
+    setTimeout(async () => {
+      if (priyaWillRespond) {
+        await respondAsPersona("priya", userMsg, userMsg);
+      }
+      setTimeout(async () => {
+        if (jordanWillRespond) {
+          const last = priyaWillRespond ? "(Priya just responded)" : userMsg;
+          await respondAsPersona("jordan", userMsg, last);
+        }
+        aiBusyRef.current = false;
+      }, 3000);
+    }, 2000 + Math.random() * 2000);
+  };
+
+  // Idle prompt: if 8s silence in phase 2, Priya nudges
+  useEffect(() => {
+    if (phase !== 1) return;
+    const id = setInterval(() => {
+      if (Date.now() - lastUserMsgAtRef.current > 8000 && !aiBusyRef.current) {
+        lastUserMsgAtRef.current = Date.now();
+        aiBusyRef.current = true;
+        setTimeout(() => {
+          setChat((c) => [...c, { name: "Priya", color: "#9b5de5", text: pick(PRIYA_FALLBACKS) }]);
+          aiBusyRef.current = false;
+        }, 1500);
+      }
+    }, 4000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const showEmberPhase3 = () => {
     setEmberMsg(`Hey there! 🦉 I'm Professor Ember, your AI climate thinking partner.\n\nI've been watching your team's discussion — you're asking great questions! Ready to go even deeper?\n\n👉 Want to hear my feedback on what your team has discussed so far?`);
