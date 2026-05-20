@@ -521,7 +521,30 @@ const WildfireGame = () => {
               <h3 className="font-bold mb-3" style={{ color: "#2d5a3d" }}>Your Team's Strategy</h3>
               <div className="text-sm space-y-3">
                 <div><b>Overview:</b> {strategy || "(none)"}</div>
-                <div><b>Budget:</b> {BUDGET_ITEMS.map((b) => `${b.icon} $${budget[b.key]}M`).join(" · ")}</div>
+                <div>
+                  <b className="block mb-2">Budget Allocation:</b>
+                  <ul className="space-y-1">
+                    {[
+                      { key: "burns", icon: "🔥", label: "Prescribed & Cultural Burns" },
+                      { key: "evac", icon: "🚗", label: "Evacuation Infrastructure" },
+                      { key: "indigenous", icon: "🤝", label: "Indigenous Partnership" },
+                      { key: "tech", icon: "📡", label: "Early Warning Technology" },
+                      { key: "edu", icon: "🏫", label: "Community Education" },
+                      { key: "response", icon: "🚁", label: "Emergency Response" },
+                    ].map((b) => (
+                      <li key={b.key} className="flex justify-between border-b border-dashed pb-1">
+                        <span>{b.icon} <b>{b.label}:</b></span>
+                        <span className="font-bold" style={{ color: "#2d5a3d" }}>${budget[b.key]}M</span>
+                      </li>
+                    ))}
+                    <li className="flex justify-between pt-2 font-bold">
+                      <span>Total:</span>
+                      <span style={{ color: budgetTotal === 50 ? "#2d5a3d" : "#ff6b35" }}>
+                        ${budgetTotal}M {budgetTotal === 50 ? "✅" : "⚠️"}
+                      </span>
+                    </li>
+                  </ul>
+                </div>
                 <div><b>Equity:</b> {equity || "(none)"}</div>
                 <div><b>Metrics:</b> {metrics || "(none)"}</div>
                 <div><b>Risk:</b> {risk || "(none)"}</div>
@@ -529,9 +552,18 @@ const WildfireGame = () => {
             </Card>
             <Card className="p-5 border-2" style={{ borderColor: "#2d5a3d" }}>
               <h3 className="font-bold mb-3" style={{ color: "#2d5a3d" }}>🦉 Professor Ember's Feedback</h3>
-              {loadingFb && <p className="text-sm text-muted-foreground">Thinking...</p>}
-              {feedback && <p className="text-sm whitespace-pre-wrap leading-relaxed">{feedback}</p>}
-              {!feedback && !loadingFb && <p className="text-sm text-muted-foreground italic">Waiting for your choice...</p>}
+              {loadingFb && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="inline-block h-3 w-3 rounded-full animate-pulse" style={{ background: "#2d5a3d" }} />
+                  Professor Ember is thinking... 🦉
+                </div>
+              )}
+              {feedback && <p className="text-sm whitespace-pre-wrap leading-relaxed animate-fade-in">{feedback}</p>}
+              {!feedback && !loadingFb && (
+                <Button size="sm" onClick={autoTriggerFeedback} className="bg-[#2d5a3d] hover:bg-[#2d5a3d]/90 text-white">
+                  Get Professor Ember's feedback
+                </Button>
+              )}
             </Card>
             <Button onClick={advance} className="bg-[#2d5a3d] hover:bg-[#2d5a3d]/90 text-white lg:col-span-2">
               Continue to Real-World Comparison →
