@@ -92,9 +92,12 @@ const WildfireGame = () => {
   // Phase 2 state
   const [whiteboard, setWhiteboard] = useState("");
   const [chat, setChat] = useState<{ name: string; color: string; text: string }[]>([
-    { name: "Priya", color: "#0089cf", text: "Where should we start? Indigenous partnerships feel important." },
+    { name: "Priya", color: "#9b5de5", text: "Hey team! Where should we start? I keep thinking about Indigenous partnerships." },
+    { name: "Jordan", color: "#0089cf", text: "Sounds good — but we also need to think about cost and what's actually doable in 2 years." },
   ]);
   const [chatInput, setChatInput] = useState("");
+  const lastUserMsgAtRef = useRef<number>(Date.now());
+  const aiBusyRef = useRef(false);
 
   // Phase 3 state
   const [socraticQs, setSocraticQs] = useState<string[]>([]);
@@ -123,21 +126,26 @@ const WildfireGame = () => {
     setPhase((p) => Math.min(p + 1, 6));
   };
 
-  // Show ember at phase 3 start
+  // Show ember at phase 3 start; auto-trigger feedback when entering Phase 5
   useEffect(() => {
     if (phase >= 2) setShowAskBtn(true); else setShowAskBtn(false);
     if (phase === 2) showEmberPhase3();
-    if (phase === 4) showEmberPhase5();
+    if (phase === 4) {
+      // Auto-fire feedback at start of Phase 5 (no button click required)
+      autoTriggerFeedback();
+    }
     if (phase === 5) showEmberPhase6();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  const callEmber = async (mode: "socratic" | "feedback") => {
+  const callEmber = async (mode: "socratic" | "feedback" | "priya" | "jordan", extra?: Record<string, unknown>) => {
     try {
       const { data, error } = await supabase.functions.invoke("professor-ember", {
         body: mode === "socratic"
           ? { mode, whiteboard, chat: chat.map((c) => `${c.name}: ${c.text}`).join("\n") }
-          : { mode, solution: { strategy, budget, equity, metrics, risk } },
+          : mode === "feedback"
+          ? { mode, solution: { strategy, budget, equity, metrics, risk, chatHistory: chat.map((c) => `${c.name}: ${c.text}`).join("\n") } }
+          : { mode, ...extra },
       });
       if (error) throw error;
       return (data as any)?.text || null;
@@ -146,6 +154,69 @@ const WildfireGame = () => {
       return null;
     }
   };
+
+  // ---------- DEMO MODE: Priya + Jordan AI teammates ----------
+  const PRIYA_FALLBACKS = [
+    "I think we need to talk more about the Indigenous partnerships piece. The Secwépemc Nation has been doing this for thousands of years — how do we actually listen to them?",
+    "Who gets left behind in our plan? I keep thinking about elderly people who can't evacuate on their own.",
+    "What happens if we spend all our money on tech and then the cell towers go down during the fire?",
+  ];
+  const JORDAN_FALLBACKS = [
+    "I hear you, but we also have to be realistic about jobs. 25,000 forestry workers depend on these forests.",
+    "That sounds expensive. How do we know it'll actually work before we spend $20M on it?",
+    "I think we need to prioritize things we can actually implement in 2 years, not just ideal solutions.",
+  ];
+  const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+  const respondAsPersona = async (persona: "priya" | "jordan", userMessage: string, lastMessage: string) => {
+    const color = persona === "priya" ? "#9b5de5" : "#0089cf";
+    const name = persona === "priya" ? "Priya" : "Jordan";
+    const txt = await callEmber(persona, { userMessage, lastMessage });
+    const finalText = txt || pick(persona === "priya" ? PRIYA_FALLBACKS : JORDAN_FALLBACKS);
+    setChat((c) => [...c, { name, color, text: finalText }]);
+  };
+
+  // Trigger demo responses when user sends a chat message
+  const triggerDemoResponse = (userMsg: string) => {
+    if (aiBusyRef.current) return;
+    aiBusyRef.current = true;
+    const lower = userMsg.toLowerCase();
+    const priyaTrigger = /(indigen|first nation|communit|people|equit|cultur)/i.test(lower);
+    const jordanTrigger = /(money|budget|job|cost|industr|timber|econom)/i.test(lower);
+    // Default: at least one always responds for demo richness
+    const priyaWillRespond = priyaTrigger || (!priyaTrigger && !jordanTrigger);
+    const jordanWillRespond = jordanTrigger || priyaWillRespond;
+
+    setTimeout(async () => {
+      if (priyaWillRespond) {
+        await respondAsPersona("priya", userMsg, userMsg);
+      }
+      setTimeout(async () => {
+        if (jordanWillRespond) {
+          const last = priyaWillRespond ? "(Priya just responded)" : userMsg;
+          await respondAsPersona("jordan", userMsg, last);
+        }
+        aiBusyRef.current = false;
+      }, 3000);
+    }, 2000 + Math.random() * 2000);
+  };
+
+  // Idle prompt: if 8s silence in phase 2, Priya nudges
+  useEffect(() => {
+    if (phase !== 1) return;
+    const id = setInterval(() => {
+      if (Date.now() - lastUserMsgAtRef.current > 8000 && !aiBusyRef.current) {
+        lastUserMsgAtRef.current = Date.now();
+        aiBusyRef.current = true;
+        setTimeout(() => {
+          setChat((c) => [...c, { name: "Priya", color: "#9b5de5", text: pick(PRIYA_FALLBACKS) }]);
+          aiBusyRef.current = false;
+        }, 1500);
+      }
+    }, 4000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const showEmberPhase3 = () => {
     setEmberMsg(`Hey there! 🦉 I'm Professor Ember, your AI climate thinking partner.\n\nI've been watching your team's discussion — you're asking great questions! Ready to go even deeper?\n\n👉 Want to hear my feedback on what your team has discussed so far?`);
@@ -180,23 +251,15 @@ const WildfireGame = () => {
     return () => clearTimeout(t);
   }, [phase, shownCards, socraticQs]);
 
-  const showEmberPhase5 = () => {
-    setEmberMsg(`Wow — your team put together a real strategy! 🦉📋\n\nI've read through your solution and I have some thoughts. Some things you did really well, and one or two things worth reconsidering.\n\n👉 Want Professor Ember's honest feedback?`);
-    setEmberActions([
-      {
-        label: "✅ Yes! Give us your feedback, Professor Ember",
-        onClick: async () => {
-          setLoadingFb(true);
-          setEmberMsg("Reading your strategy... 🦉");
-          setEmberActions(undefined);
-          const txt = await callEmber("feedback");
-          setFeedback(txt || FALLBACK_FEEDBACK({ budget }));
-          setLoadingFb(false);
-          setEmberMsg(null);
-        },
-      },
-      { label: "⏭ We're confident — show real-world comparison", variant: "outline", onClick: () => { setFeedback(FALLBACK_FEEDBACK({ budget })); setEmberMsg(null); } },
-    ]);
+  // Auto-trigger Ember feedback at the start of Phase 5
+  const autoTriggerFeedback = async () => {
+    setEmberMsg(null);
+    setEmberActions(undefined);
+    setLoadingFb(true);
+    setFeedback(null);
+    const txt = await callEmber("feedback");
+    setFeedback(txt || FALLBACK_FEEDBACK({ budget }));
+    setLoadingFb(false);
   };
 
   const showEmberPhase6 = () => {
@@ -206,8 +269,24 @@ const WildfireGame = () => {
 
   const sendChat = () => {
     if (!chatInput.trim()) return;
-    setChat((c) => [...c, { name: "You", color: "#2d5a3d", text: chatInput.trim() }]);
+    const msg = chatInput.trim();
+    setChat((c) => [...c, { name: "You", color: "#2d5a3d", text: msg }]);
     setChatInput("");
+    lastUserMsgAtRef.current = Date.now();
+    triggerDemoResponse(msg);
+  };
+
+  // Floating "Ask Professor Ember" handler — context-aware
+  const handleAskEmber = async () => {
+    if (phase >= 3) {
+      setEmberMsg("Professor Ember is thinking... 🦉");
+      setEmberActions(undefined);
+      const txt = await callEmber("feedback");
+      setEmberMsg(txt || FALLBACK_FEEDBACK({ budget }));
+      setEmberActions([{ label: "Thanks, Professor!", onClick: () => setEmberMsg(null) }]);
+    } else {
+      showEmberPhase3();
+    }
   };
 
   // Score calculation
@@ -329,13 +408,27 @@ const WildfireGame = () => {
             </Card>
             <Card className="p-4 flex flex-col">
               <div className="font-bold mb-2" style={{ color: "#2d5a3d" }}>💬 Team Chat</div>
+              <div className="text-[11px] px-2 py-1.5 mb-2 rounded bg-glacier/40 border" style={{ borderColor: "#2d5a3d" }}>
+                🎭 Demo Mode — AI teammates are simulating a real student discussion
+              </div>
               <div className="flex-1 min-h-[300px] max-h-[400px] overflow-y-auto space-y-2 mb-3 text-sm">
-                {chat.map((c, i) => (
-                  <div key={i}>
-                    <span className="font-semibold" style={{ color: c.color }}>{c.name}:</span>{" "}
-                    <span>{c.text}</span>
-                  </div>
-                ))}
+                {chat.map((c, i) => {
+                  const initial = c.name === "You" ? "Y" : c.name[0];
+                  return (
+                    <div key={i} className="flex gap-2 items-start">
+                      <span
+                        className="h-6 w-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
+                        style={{ background: c.color }}
+                      >
+                        {initial}
+                      </span>
+                      <div>
+                        <span className="font-semibold" style={{ color: c.color }}>{c.name}</span>
+                        <div>{c.text}</div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
               <div className="flex gap-2">
                 <Input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Share your thoughts..." onKeyDown={(e) => e.key === "Enter" && sendChat()} />
@@ -428,7 +521,30 @@ const WildfireGame = () => {
               <h3 className="font-bold mb-3" style={{ color: "#2d5a3d" }}>Your Team's Strategy</h3>
               <div className="text-sm space-y-3">
                 <div><b>Overview:</b> {strategy || "(none)"}</div>
-                <div><b>Budget:</b> {BUDGET_ITEMS.map((b) => `${b.icon} $${budget[b.key]}M`).join(" · ")}</div>
+                <div>
+                  <b className="block mb-2">Budget Allocation:</b>
+                  <ul className="space-y-1">
+                    {[
+                      { key: "burns", icon: "🔥", label: "Prescribed & Cultural Burns" },
+                      { key: "evac", icon: "🚗", label: "Evacuation Infrastructure" },
+                      { key: "indigenous", icon: "🤝", label: "Indigenous Partnership" },
+                      { key: "tech", icon: "📡", label: "Early Warning Technology" },
+                      { key: "edu", icon: "🏫", label: "Community Education" },
+                      { key: "response", icon: "🚁", label: "Emergency Response" },
+                    ].map((b) => (
+                      <li key={b.key} className="flex justify-between border-b border-dashed pb-1">
+                        <span>{b.icon} <b>{b.label}:</b></span>
+                        <span className="font-bold" style={{ color: "#2d5a3d" }}>${budget[b.key]}M</span>
+                      </li>
+                    ))}
+                    <li className="flex justify-between pt-2 font-bold">
+                      <span>Total:</span>
+                      <span style={{ color: budgetTotal === 50 ? "#2d5a3d" : "#ff6b35" }}>
+                        ${budgetTotal}M {budgetTotal === 50 ? "✅" : "⚠️"}
+                      </span>
+                    </li>
+                  </ul>
+                </div>
                 <div><b>Equity:</b> {equity || "(none)"}</div>
                 <div><b>Metrics:</b> {metrics || "(none)"}</div>
                 <div><b>Risk:</b> {risk || "(none)"}</div>
@@ -436,9 +552,18 @@ const WildfireGame = () => {
             </Card>
             <Card className="p-5 border-2" style={{ borderColor: "#2d5a3d" }}>
               <h3 className="font-bold mb-3" style={{ color: "#2d5a3d" }}>🦉 Professor Ember's Feedback</h3>
-              {loadingFb && <p className="text-sm text-muted-foreground">Thinking...</p>}
-              {feedback && <p className="text-sm whitespace-pre-wrap leading-relaxed">{feedback}</p>}
-              {!feedback && !loadingFb && <p className="text-sm text-muted-foreground italic">Waiting for your choice...</p>}
+              {loadingFb && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <span className="inline-block h-3 w-3 rounded-full animate-pulse" style={{ background: "#2d5a3d" }} />
+                  Professor Ember is thinking... 🦉
+                </div>
+              )}
+              {feedback && <p className="text-sm whitespace-pre-wrap leading-relaxed animate-fade-in">{feedback}</p>}
+              {!feedback && !loadingFb && (
+                <Button size="sm" onClick={autoTriggerFeedback} className="bg-[#2d5a3d] hover:bg-[#2d5a3d]/90 text-white">
+                  Get Professor Ember's feedback
+                </Button>
+              )}
             </Card>
             <Button onClick={advance} className="bg-[#2d5a3d] hover:bg-[#2d5a3d]/90 text-white lg:col-span-2">
               Continue to Real-World Comparison →
@@ -522,7 +647,7 @@ const WildfireGame = () => {
       </button>
 
       {showAskBtn && !emberMsg && (
-        <AskEmberButton onClick={() => showEmberPhase3()} />
+        <AskEmberButton onClick={handleAskEmber} />
       )}
 
       {emberMsg && (
