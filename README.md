@@ -6,11 +6,9 @@ GaiaThinker is built for schools and designed with student
 safety as the highest priority.
 
 ### Data Privacy
-- ✅ No student accounts required for pilot testing
-- ✅ Fully compliant with **BC FIPPA** (Freedom of Information
-  and Protection of Privacy Act)
-- ✅ Fully compliant with **PIPEDA** (Personal Information
-  Protection and Electronic Documents Act)
+- ✅ No student accounts required for testing
+- ✅ Fully compliant with **BC FIPPA**
+- ✅ Fully compliant with **PIPEDA**
 - ✅ **Canadian data residency** — all data stored in
   Supabase Canada East region
 - ✅ Student data **never sold, shared, or used for advertising**
@@ -22,7 +20,6 @@ safety as the highest priority.
 - ✅ Secure edge functions for all AI interactions
 - ✅ API keys never exposed to client-side code
 - ✅ Row-level security on all database tables
-- ✅ Regular security audits planned pre-deployment
 
 ### Content Safety
 - ✅ All data sourced from BC government and peer-reviewed research
@@ -49,17 +46,17 @@ safety as the highest priority.
 - [x] Room code + QR code + email + Google Classroom joining
 - [x] Live leaderboard for up to 5 simultaneous teams
 - [x] Teacher dashboard with live monitoring
-- [x] Demo mode with AI student personas (Priya + Jordan)
+- [x] Demo mode with AI student personas
 - [x] Budget allocation with real BC data
 - [x] Real-world comparison phase
 - [x] gaiathinker.gaiasystems.ca live on custom domain
 
-### 🔄 In Development
-- [ ] Professor Ember — full real-time Claude API responses
-- [ ] QR code generation (qrcode.react)
-- [ ] French language version (bilingual BC deployment)
+### 🔄 In Progress
+- [ ] Enhanced AI tutor response depth
+- [ ] Bilingual French language version
 - [ ] Personalized book recommendations engine
 - [ ] Student progress tracking dashboard
+- [ ] QR code instant join feature
 
 ### 🔮 Future Vision
 - [ ] Turtle guide character for at-risk species education
@@ -76,24 +73,25 @@ safety as the highest priority.
 
 ## Pilot Program
 
-We are seeking one partner school district for a
-**free pilot program in September 2026.**
+We are seeking BC school district partners for a
+**free pilot program.**
 
 **What the pilot involves:**
-- One Environmental Science 12 class
-- One teacher with a guest educator from the district
+- One secondary science class
 - 90 minutes of class time
 - A short student and teacher feedback form
+- Zero cost to the district
 
 **What the district receives:**
-- Real student engagement data from their own students
+- Real student engagement data
 - Comprehensive feedback report
 - Early adopter recognition in all future materials
 - Full curriculum alignment documentation
 - A made-in-BC climate education tool shaped by
   their own teachers and students
 
-**Zero cost to the district.**
+Interested in piloting GaiaThinker in your school?
+📧 alireza.farshadfard@gmail.com
 
 ---
 
@@ -118,7 +116,7 @@ designed thoughtfully.
 
 ```bash
 # Clone the repository
-git clone https://github.com/[your-username]/gaiathinker.git
+git clone https://github.com/ALi-Fard/gaiathinker.git
 
 # Navigate to project directory
 cd gaiathinker
@@ -169,12 +167,14 @@ All data used in GaiaThinker is verified from primary sources:
 Copyright © 2026 Gaialink Intelligence Systems Inc.
 All rights reserved.
 
-GaiaThinker is proprietary software. The source code,
-design, educational content, and data are the intellectual
-property of Gaialink Intelligence Systems Inc.
+GaiaThinker is source-visible software. You may view and
+review the code for trust and transparency purposes.
+Commercial use, redistribution, and derivative works
+are not permitted without written permission.
 
-For licensing inquiries, partnership opportunities, or
-pilot program applications please contact:
+See the [LICENSE](LICENSE) file for full details.
+
+For licensing inquiries or partnership opportunities:
 alireza.farshadfard@gmail.com
 
 ---
@@ -189,9 +189,9 @@ We are grateful to the Indigenous fire keepers, educators,
 environmental scientists, and community members whose
 knowledge and stories are at the heart of this platform.
 
-Special thanks to Karen Crosby and the New Westminster
-School District Climate Action Working Group for their
-guidance and partnership.
+We are thankful to the BC educators and school district
+partners who have generously shared their time, expertise,
+and belief in this mission.
 
 ---
 
