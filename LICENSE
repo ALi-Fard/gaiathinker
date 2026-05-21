@@ -1,0 +1,235 @@
+GAIATHINKER EDUCATIONAL SOURCE LICENSE
+Version 1.0 — May 2026
+
+Copyright © 2026 Gaialink Intelligence Systems Inc.
+All rights reserved.
+
+Project:      GaiaThinker — Climate Action Learning for BC Students
+Website:      gaiathinker.gaiasystems.ca
+Organization: Gaialink Intelligence Systems Inc.
+Contact:      alireza.farshadfard@gmail.com
+Website:      gaiasystems.ca
+Author:       Ali Reza Farshad Fard
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PREAMBLE
+
+GaiaThinker is an open-visibility educational platform
+built to serve British Columbia students, educators,
+and school districts. This license makes the source
+code visible for trust, transparency, and academic
+review — while protecting the intellectual property,
+mission, and integrity of the platform.
+
+This is not a permissive open source license.
+Visibility does not equal permission to copy,
+deploy, or redistribute.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 1: WHAT YOU MAY DO (Permitted Uses)
+
+The following are explicitly permitted without
+requiring written permission from Gaialink
+Intelligence Systems Inc.:
+
+1.1 VIEWING AND REVIEW
+    You may view, read, and study the source code
+    for personal learning, academic research, or
+    institutional security and privacy review.
+
+1.2 SCHOOL DISTRICT REVIEW
+    School districts, educators, and IT administrators
+    may review this codebase in full to verify safety,
+    privacy compliance, and pedagogical integrity
+    before deploying GaiaThinker in their schools.
+
+1.3 ACADEMIC RESEARCH
+    Researchers at accredited academic institutions
+    may reference and cite this codebase in
+    peer-reviewed research, with proper attribution
+    to Gaialink Intelligence Systems Inc.
+
+1.4 CONTRIBUTING
+    You may submit pull requests, bug reports,
+    and suggested improvements via GitHub.
+    All accepted contributions become the property
+    of Gaialink Intelligence Systems Inc. under
+    this license, unless a separate contributor
+    agreement is signed.
+
+1.5 PERSONAL STUDY
+    Individual developers may study this code
+    to learn techniques and approaches, provided
+    they do not reproduce substantial portions
+    in their own commercial or public projects.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 2: WHAT YOU MAY NOT DO (Prohibited Uses)
+
+The following are strictly prohibited without
+prior written permission from Gaialink
+Intelligence Systems Inc.:
+
+2.1 COMMERCIAL USE
+    You may not use this software, in whole or
+    in part, for any commercial purpose, including
+    but not limited to: selling access, charging
+    subscription fees, licensing to third parties,
+    or incorporating into a commercial product.
+
+2.2 REDISTRIBUTION
+    You may not redistribute this software,
+    in whole or in part, in source or compiled
+    form, through any channel including but not
+    limited to: GitHub forks made public,
+    npm packages, app stores, or direct download
+    sites.
+
+2.3 DERIVATIVE WORKS
+    You may not create derivative works based
+    on this software without explicit written
+    permission. This includes rebranded versions,
+    translated versions, or modified versions
+    deployed under a different name or brand.
+
+2.4 REMOVAL OF COPYRIGHT
+    You may not remove, alter, or obscure any
+    copyright notices, license notices, or
+    attribution statements contained in this
+    software or its documentation.
+
+2.5 COMPETITIVE USE
+    You may not use this codebase, its architecture,
+    its educational content, its AI prompt designs,
+    or its pedagogical framework to build a
+    competing educational product without prior
+    written agreement with Gaialink Intelligence
+    Systems Inc.
+
+2.6 AI TRAINING
+    You may not use this source code, educational
+    content, AI prompts, or scenario data as
+    training data for any artificial intelligence
+    or machine learning model without explicit
+    written permission.
+
+2.7 IMPERSONATION
+    You may not deploy any version of this software
+    in a way that implies endorsement by, or
+    affiliation with, Gaialink Intelligence Systems
+    Inc., the New Westminster School District,
+    or any Indigenous Nations or communities
+    referenced in the platform.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 3: EDUCATIONAL CONTENT
+
+3.1 The educational content contained in this
+    platform — including BC climate scenarios,
+    Indigenous land stewardship descriptions,
+    stakeholder voices, Socratic question frameworks,
+    and the Professor Ember AI tutor design —
+    is the original intellectual property of
+    Gaialink Intelligence Systems Inc.
+
+3.2 Indigenous knowledge, cultural practices,
+    and community voices referenced in this
+    platform are included with deep respect
+    and are not available for reproduction,
+    adaptation, or reuse without consultation
+    with the relevant First Nations communities
+    and written permission from
+    Gaialink Intelligence Systems Inc.
+
+3.3 All verified data cited in this platform
+    is sourced from publicly available government
+    and peer-reviewed sources, as documented
+    in the README. The selection, framing,
+    and pedagogical application of that data
+    is the intellectual property of
+    Gaialink Intelligence Systems Inc.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 4: SCHOOL DISTRICT AND PILOT PARTNERS
+
+4.1 School districts approved for the GaiaThinker
+    pilot program receive a separate written
+    agreement that governs their specific
+    deployment rights, data handling procedures,
+    and feedback obligations.
+
+4.2 Pilot participation does not grant any
+    intellectual property rights beyond those
+    explicitly stated in the pilot agreement.
+
+4.3 Student data collected during approved pilots
+    remains subject to BC FIPPA and PIPEDA,
+    as described in the platform privacy policy.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 5: DISCLAIMER OF WARRANTIES
+
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-
+INFRINGEMENT.
+
+IN NO EVENT SHALL GAIALINK INTELLIGENCE SYSTEMS INC.
+OR ALI REZA FARSHAD FARD BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE
+OF THIS SOFTWARE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 6: GOVERNING LAW
+
+This license is governed by the laws of the
+Province of British Columbia, Canada, and the
+federal laws of Canada applicable therein.
+
+Any disputes arising under this license shall
+be resolved in the courts of British Columbia.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 7: CONTACT AND PERMISSIONS
+
+To request permissions beyond those granted
+in this license — including commercial licensing,
+partnership agreements, pilot program enrollment,
+or research collaborations — please contact:
+
+    Ali Reza Farshad Fard
+    Founder, Gaialink Intelligence Systems Inc.
+
+    Email:    alireza.farshadfard@gmail.com
+    Website:  gaiasystems.ca
+    Platform: gaiathinker.gaiasystems.ca
+    LinkedIn: linkedin.com/in/a-farshadfard
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SECTION 8: ACKNOWLEDGEMENT
+
+GaiaThinker was built on the traditional,
+ancestral, and unceded territories of the
+Coast Salish peoples, including the Qayqayt,
+Kwikwetlem, and Stó:lō Nations.
+
+We are grateful to the Indigenous fire keepers,
+educators, environmental scientists, and community
+members whose knowledge and stories are at the
+heart of this platform.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Last updated: May 2026
+Gaialink Intelligence Systems Inc.
+British Columbia, Canada
