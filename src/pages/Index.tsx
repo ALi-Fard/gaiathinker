@@ -8,6 +8,9 @@ import { VoiceAssistant } from "@/components/VoiceAssistant";
 import { BookOpen, Target, Users, Leaf, MapPin, ClipboardCheck, Lightbulb, Globe2, Gamepad2, Sprout, Music, User } from "lucide-react";
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { X } from "lucide-react";
 
 const LYRICS: { time: number; text: string }[] = [
   { time: 13, text: "Morning light through the cedar trees," },
@@ -95,8 +98,30 @@ const Section = ({ id, eyebrow, title, children }: { id: string; eyebrow: string
 );
 
 const Index = () => {
+  const [gameOpen, setGameOpen] = useState(false);
   return (
     <main className="min-h-screen">
+      <Dialog open={gameOpen} onOpenChange={setGameOpen}>
+        <DialogContent className="max-w-[100vw] w-screen h-screen sm:max-w-[100vw] p-0 gap-0 border-0 rounded-none bg-background sm:rounded-none">
+          <VisuallyHidden><DialogTitle>GaiaThinker 3D — BC Climate Field Mission</DialogTitle></VisuallyHidden>
+          <button
+            onClick={() => setGameOpen(false)}
+            aria-label="Close game"
+            className="absolute top-3 right-3 z-50 h-10 w-10 inline-flex items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/90 transition shadow-lg"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {gameOpen && (
+            <iframe
+              src="/gaiathinker-3d.html"
+              title="GaiaThinker 3D Game"
+              className="w-full h-full border-0"
+              allow="autoplay; fullscreen; gamepad; xr-spatial-tracking; accelerometer; gyroscope"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Top brand nav */}
       <nav className="absolute top-0 left-0 right-0 z-20">
         <div className="container max-w-6xl flex items-center justify-between py-5 text-white">
@@ -146,8 +171,12 @@ const Index = () => {
             <Button size="lg" className="bg-white text-forest hover:bg-white/90" asChild>
               <a href="#explorer">Start the Activity</a>
             </Button>
-            <Button size="lg" className="bg-sun text-sun-foreground hover:bg-sun/90" asChild>
-              <a href="/gaiathinker-3d.html" target="_blank" rel="noopener noreferrer"><Gamepad2 className="mr-2 h-4 w-4" /> Play the Game</a>
+            <Button
+              size="lg"
+              className="bg-sun text-sun-foreground hover:bg-sun/90"
+              onClick={() => setGameOpen(true)}
+            >
+              <Gamepad2 className="mr-2 h-4 w-4" /> Play the Game
             </Button>
             <ClimateMusicButton />
             <Button size="lg" className="bg-ember text-ember-foreground hover:bg-ember/90" asChild>

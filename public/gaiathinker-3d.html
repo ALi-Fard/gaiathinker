@@ -232,7 +232,36 @@
     box-shadow: 0 30px 80px rgba(0,0,0,0.3);
     max-height: 90vh;
     overflow-y: auto;
+    position: relative;
   }
+  /* X close button at the top-right of the scenario popup */
+  .scenario-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 74, 150, 0.35);
+    background: #fff;
+    color: #c0337a;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(255, 74, 150, 0.25);
+    transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
+    z-index: 2;
+  }
+  .scenario-close:hover {
+    background: #ff4a96;
+    color: #fff;
+    transform: scale(1.08) rotate(90deg);
+  }
+  .scenario-close:active { transform: scale(0.95) rotate(90deg); }
   .scenario-card h2 {
     margin: 4px 0 8px;
     font-size: 22px;
@@ -371,6 +400,28 @@
     50%      { transform: translate(-50%, calc(-100% - 6px)); }
   }
 
+  /* "Arrived" state — hint glows bright pink when player is right at the landmark */
+  #proxHint.arrived {
+    background: linear-gradient(135deg, #ff4a96 0%, #c64ad8 100%);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow:
+      0 0 0 4px rgba(255, 74, 150, 0.2),
+      0 8px 28px rgba(255, 74, 150, 0.55),
+      0 0 38px rgba(255, 74, 150, 0.5);
+    font-size: 13.5px;
+    font-weight: 700;
+    animation: arrivedPulse 1.0s ease-in-out infinite;
+  }
+  #proxHint.arrived .cta {
+    background: #fff;
+    color: #c0337a;
+  }
+  @keyframes arrivedPulse {
+    0%, 100% { transform: translate(-50%, -100%) scale(1.0); }
+    50%      { transform: translate(-50%, calc(-100% - 4px)) scale(1.08); }
+  }
+
   /* First-time onboarding nudge after intro closes */
   #onboardTip {
     position: fixed;
@@ -392,6 +443,53 @@
   }
   #onboardTip.show { opacity: 1; }
   #onboardTip .gold { color: var(--gold); }
+
+  /* Comic salmon speech bubble — fixed-position cartoon dialogue */
+  #salmonBubble {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9;
+    background: #fff;
+    color: #1a0f24;
+    border: 3px solid #1a0f24;
+    border-radius: 18px;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 800;
+    box-shadow: 4px 4px 0 #1a0f24;
+    transform: translate(-50%, -100%) scale(0.4);
+    opacity: 0;
+    transition: opacity 0.18s ease, transform 0.25s cubic-bezier(.4, 1.6, .5, 1);
+    white-space: nowrap;
+    font-family: 'Comic Sans MS', 'Marker Felt', sans-serif;
+  }
+  #salmonBubble.show {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+  #salmonBubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 12px solid #1a0f24;
+  }
+  #salmonBubble::before {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #fff;
+    z-index: 1;
+  }
 
   /* ---------- CELEBRATION OVERLAY (full-screen burst on correct answer) ---------- */
   #celebration {
@@ -439,6 +537,66 @@
     50%  { transform: scale(1.0) rotate(-2deg); opacity: 1; }
     85%  { transform: scale(1.0) rotate(-2deg); opacity: 1; }
     100% { transform: scale(1.05) rotate(-2deg); opacity: 0; }
+  }
+
+  /* Sub-shout: smaller line below the main shout for contextual encouragement */
+  #celebration .sub-shout {
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(15px, 2.6vw, 22px);
+    font-weight: 700;
+    color: #fff;
+    background: rgba(26, 15, 36, 0.78);
+    padding: 8px 18px;
+    border-radius: 999px;
+    text-align: center;
+    max-width: 80vw;
+    box-shadow: 0 4px 22px rgba(255, 74, 150, 0.35);
+    opacity: 0;
+    animation: subShoutPop 1.7s cubic-bezier(.2,.9,.3,1) forwards;
+    animation-delay: 0.25s;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  #celebration .sub-shout.wrong {
+    box-shadow: 0 4px 22px rgba(255, 122, 58, 0.4);
+  }
+  @keyframes subShoutPop {
+    0%   { transform: translateX(-50%) translateY(12px); opacity: 0; }
+    20%  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    80%  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-6px); opacity: 0; }
+  }
+
+  /* Streak indicator — fires only when the player gets multiple correct in a row */
+  #streakBadge {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.6);
+    z-index: 96;
+    pointer-events: none;
+    padding: 10px 22px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ffd66b 0%, #ff4a96 100%);
+    color: #1a0f24;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 6px 26px rgba(255, 74, 150, 0.55);
+    opacity: 0;
+  }
+  #streakBadge.show {
+    animation: streakPop 2.0s cubic-bezier(.2,1.2,.3,1) forwards;
+  }
+  @keyframes streakPop {
+    0%   { transform: translateX(-50%) scale(0.6) rotate(-4deg); opacity: 0; }
+    18%  { transform: translateX(-50%) scale(1.15) rotate(2deg); opacity: 1; }
+    35%  { transform: translateX(-50%) scale(1.0) rotate(0deg); opacity: 1; }
+    80%  { transform: translateX(-50%) scale(1.0) rotate(0deg); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1.05) rotate(0deg); opacity: 0; }
   }
 
   /* Confetti dots that fly out behind the shout */
@@ -606,10 +764,15 @@
   Walk toward a <span class="gold">glowing ▼ marker</span> · click it to investigate
 </div>
 
-<!-- Celebration overlay: huge bouncy shout + confetti -->
+<!-- Celebration overlay: huge bouncy shout + sub-line + confetti -->
 <div id="celebration">
   <div class="shout" id="celebrationShout">FACTS!</div>
+  <div class="sub-shout" id="celebrationSubShout"></div>
 </div>
+<!-- Streak badge for consecutive correct answers -->
+<div id="streakBadge"></div>
+<!-- Comic salmon speech bubble -->
+<div id="salmonBubble"></div>
 
 <!-- Score pop near the top-right HUD when points are awarded -->
 <div id="scorePop">+20</div>
@@ -646,13 +809,15 @@
       <span class="chip">First Peoples Principles</span>
       <span class="chip">~8 min play</span>
     </div>
-    <button class="primary-btn" id="startBtn">Begin field mission →</button>
+    <button class="primary-btn" id="startBtn" type="button" onclick="window.__beginMission && window.__beginMission()">Begin field mission →</button>
+    <div style="margin-top:14px;font-size:11px;color:var(--ink-soft);opacity:.55;letter-spacing:0.08em;">build v2026.05.25-r5-FORCE · if you don't see this stamp, hard-refresh (Ctrl+Shift+R)</div>
   </div>
 </div>
 
 <!-- ============ SCENARIO POPUP ============ -->
 <div id="scenarioPopup">
   <div class="scenario-card">
+    <button class="scenario-close" id="scenarioCloseX" aria-label="Close — come back later">×</button>
     <span class="tag" id="scenarioTag">Scenario</span>
     <h2 id="scenarioTitle">—</h2>
     <div class="desc" id="scenarioDesc">—</div>
@@ -705,8 +870,88 @@
 
 <!-- ============ THREE.JS ============ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- ============ BULLETPROOF BOOTSTRAP ============
+     This tag is intentionally isolated: it contains ONLY the start button
+     binder + global error reporter. Even if the main <script> below has
+     a syntax error and refuses to run, this tag still executes and the
+     "Begin field mission" button still hides the intro overlay.        -->
 <script>
-'use strict';
+// ON-SCREEN error banner — surfaces any uncaught JS error so the user
+// doesn't have to open the developer console to see what went wrong.
+window.addEventListener('error', function(ev) {
+  try {
+    var msg = (ev && ev.message) ? ev.message : 'Unknown error';
+    var src = (ev && ev.filename) ? (ev.filename.split('/').pop() + ':' + ev.lineno) : '';
+    var banner = document.getElementById('errBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'errBanner';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#c0337a;color:#fff;padding:10px 14px;font-family:system-ui,sans-serif;font-size:13px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.3);max-height:40vh;overflow:auto;';
+      document.body && document.body.appendChild(banner);
+    }
+    banner.innerHTML += '<div>⚠️ ' + msg + ' <span style="opacity:.7;font-weight:400;">' + src + '</span></div>';
+  } catch(e) {}
+});
+
+/* ============================================================
+   BULLETPROOF START BUTTON
+   The button's HTML uses an inline onclick that calls
+   window.__beginMission(). We define that function immediately —
+   no DOM-ready wait, no addEventListener — so the button works
+   from the instant the script tag finishes parsing, regardless
+   of what the rest of the script does.
+   ============================================================ */
+window.__beginMission = function() {
+  console.log('[GaiaThinker] Start button clicked.');
+  try {
+    var intro = document.getElementById('intro');
+    if (intro) intro.style.display = 'none';
+  } catch (e) { console.error('hide intro failed:', e); }
+  try {
+    if (typeof STATE === 'object' && STATE) {
+      STATE.started = true;
+      STATE.paused = false;
+    }
+  } catch (e) { console.error('STATE set failed:', e); }
+  try { if (typeof startMusic === 'function') startMusic(); } catch (e) {}
+  try {
+    var canv = document.getElementById('gameCanvas');
+    if (canv) canv.focus();
+  } catch (e) {}
+  try {
+    var tip = document.getElementById('onboardTip');
+    if (tip) {
+      tip.classList.add('show');
+      setTimeout(function(){ tip.classList.remove('show'); }, 5500);
+    }
+  } catch (e) {}
+};
+
+// Also bind via addEventListener as a backup, in case the inline onclick
+// is ever stripped (e.g. CSP).
+(function bindStartButtonEarly() {
+  function tryBind() {
+    var btn = document.getElementById('startBtn');
+    if (!btn) { setTimeout(tryBind, 50); return; }
+    if (btn.__bound) return;
+    btn.__bound = true;
+    btn.addEventListener('click', function() { window.__beginMission(); });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tryBind);
+  } else {
+    tryBind();
+  }
+})();
+</script>
+
+<!-- ============ MAIN GAME SCRIPT ============
+     Even if this whole tag has a syntax error and refuses to execute,
+     the bootstrap tag above has already attached the start-button
+     handler and the error-banner reporter. The user will still see
+     the intro hide AND a visible error message describing the problem. -->
+<script>
 
 /* ============================================================
    SCENARIO DATA — 5 real BC climate landmarks
@@ -786,6 +1031,10 @@ const STATE = {
   started: false,
   activeScenario: null,
   paused: false,
+  streak: 0,                  // consecutive correct first-attempt answers
+  bestStreak: 0,
+  recentShouts: [],           // ring buffer of recently shown shout texts (avoid repeats)
+  recentSubs: [],             // ring buffer of recently shown sub-messages
 };
 
 /* ============================================================
@@ -1071,6 +1320,8 @@ function buildTree(x, z, scaleMul, dead) {
   g.rotation.y = Math.random() * Math.PI * 2;
   g.rotation.z = (Math.random() - 0.5) * 0.08;
   world.add(g);
+  // Trees block player movement — radius based on tree scale
+  addCollider(x, z, 0.55 * scaleMul);
   return g;
 }
 
@@ -1201,6 +1452,7 @@ function buildLighthouse() {
   g.add(beacon);
   g.position.set(-19, 1.4, -10);
   world.add(g);
+  addCollider(-19, -10, 1.4); // lighthouse base
 }
 
 // --- Cedar cabin ---
@@ -1240,6 +1492,7 @@ function buildCabin() {
   g.position.set(18, 1.4, -10);
   g.rotation.y = -0.6;
   world.add(g);
+  addCollider(18, -10, 1.6); // cabin body
 }
 
 // Smoke particle helper (used by cabin + LNG + longhouse fire)
@@ -1315,6 +1568,16 @@ function buildDock() {
    Each builder returns a group + an invisible hit-box + a glow ring.
    ============================================================ */
 const landmarks = []; // { id, group, hitbox, glowRing, light, animate(t), pulseT }
+const hitboxIdMap = new Map(); // uuid → landmarkId (bulletproof fallback)
+
+/* ---------- COLLISION REGISTRY ----------
+   Each entry is { x, z, r } — a circular collider on the ground plane.
+   The player can't walk through these; updatePlayer uses sliding collision
+   so movement feels smooth instead of dead-stopping at every obstacle. */
+const colliders = [];
+function addCollider(x, z, r) {
+  colliders.push({ x, z, r });
+}
 
 function makeGlowRing(radius) {
   const ring = new THREE.Mesh(
@@ -1347,36 +1610,37 @@ function makeHitbox(w, h, d) {
 function makeFloatingArrow(yHeight, tint, accent) {
   const anchor = new THREE.Group();
   anchor.position.y = yHeight;
+  anchor.userData.baseY = yHeight; // store base height so it can be queried later
 
   const bob = new THREE.Group();
   anchor.add(bob);
 
-  // Large halo disc behind the arrow
+  // Smaller halo disc behind the arrow — tighter, sits right on top of landmark
   const halo = new THREE.Mesh(
-    new THREE.RingGeometry(0.8, 1.55, 24),
+    new THREE.RingGeometry(0.32, 0.62, 24),
     new THREE.MeshBasicMaterial({
       color: accent || 0xff8ad0,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.5,
       side: THREE.DoubleSide,
       depthWrite: false,
       fog: false,
     })
   );
   halo.rotation.x = -Math.PI / 2;
-  halo.position.y = -0.4;
+  halo.position.y = -0.18;
   bob.add(halo);
 
-  // The big diamond chevron — bright hot-pink, strongly emissive
+  // The diamond chevron — smaller, sits compactly above the landmark
   const coneMat = new THREE.MeshStandardMaterial({
     color: tint || 0xff3a8a,
     emissive: tint || 0xff3a8a,
-    emissiveIntensity: 1.1,
+    emissiveIntensity: 1.2,
     flatShading: true,
     roughness: 0.35,
     metalness: 0.0,
   });
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.85, 1.7, 4), coneMat);
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.7, 4), coneMat);
   cone.rotation.x = Math.PI;
   cone.rotation.y = Math.PI / 4;
   cone.position.y = 0;
@@ -1384,17 +1648,17 @@ function makeFloatingArrow(yHeight, tint, accent) {
 
   // Inner bright core — pure white-pink, ignores fog so it stays vivid at distance
   const core = new THREE.Mesh(
-    new THREE.ConeGeometry(0.42, 0.85, 4),
+    new THREE.ConeGeometry(0.17, 0.36, 4),
     new THREE.MeshBasicMaterial({ color: 0xfff0f8, fog: false })
   );
   core.rotation.x = Math.PI;
   core.rotation.y = Math.PI / 4;
-  core.position.y = -0.2;
+  core.position.y = -0.08;
   bob.add(core);
 
   // Small point light tinted hot-pink so the arrow visibly lights its surroundings
-  const pinkGlow = new THREE.PointLight(0xff4a96, 0.5, 5);
-  pinkGlow.position.y = -0.4;
+  const pinkGlow = new THREE.PointLight(0xff4a96, 0.4, 3);
+  pinkGlow.position.y = -0.18;
   bob.add(pinkGlow);
 
   anchor.userData.bob = bob;
@@ -1404,18 +1668,20 @@ function makeFloatingArrow(yHeight, tint, accent) {
   return anchor;
 }
 
-function attachLandmark(id, group, hitbox, glowRing, light, animate) {
+function attachLandmark(id, group, hitbox, glowRing, light, animate, arrowY) {
   group.add(hitbox);
   group.add(glowRing);
   if (light) group.add(light);
 
-  // Big hot-pink chevron above each landmark.
-  // y = 9.0 (local) clears the tallest props: SkyTrain track + train, LNG smokestack
-  const arrow = makeFloatingArrow(9.0, 0xff3a8a, 0xff8ad0);
+  // Smaller hot-pink chevron sitting directly above each landmark's top.
+  // Height is tuned per-landmark so the arrow always hugs the actual rooftop.
+  const arrowHeight = (typeof arrowY === 'number') ? arrowY : 4.5;
+  const arrow = makeFloatingArrow(arrowHeight, 0xff3a8a, 0xff8ad0);
   group.add(arrow);
 
   world.add(group);
   hitbox.userData.landmarkId = id;
+  hitboxIdMap.set(hitbox.uuid, id); // FIX: UUID-based safeguard prevents ID mix-up on deploy
   landmarks.push({
     id, group, hitbox, glowRing, light, animate, arrow,
     pulseT: Math.random() * Math.PI * 2,
@@ -1428,59 +1694,247 @@ function buildSkyTrain() {
   const g = new THREE.Group();
   g.position.set(-8, 1.4, -14);
 
-  // Two support pillars
-  for (let i = -1; i <= 1; i += 2) {
+  // Four support pillars (longer guideway, more realistic)
+  const pillarPositions = [-5.5, -1.8, 1.8, 5.5];
+  for (const px of pillarPositions) {
     const pillar = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.35, 0.45, 3.2, 8),
+      new THREE.CylinderGeometry(0.32, 0.42, 3.0, 10),
       MAT.concrete
     );
-    pillar.position.set(i * 2.5, 1.6, 0);
+    pillar.position.set(px, 1.5, 0);
     pillar.castShadow = true; pillar.receiveShadow = true;
     g.add(pillar);
+
+    // Pillar cap — small flared concrete top where the beam rests
+    const cap = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 0.18, 1.6),
+      MAT.concrete
+    );
+    cap.position.set(px, 3.05, 0);
+    cap.castShadow = true; cap.receiveShadow = true;
+    g.add(cap);
   }
-  // Elevated concrete track beam
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 1.4), MAT.concrete);
-  beam.position.y = 3.2; beam.castShadow = true; beam.receiveShadow = true;
+
+  // Elevated concrete guideway beam — longer & a touch slimmer
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(13, 0.42, 1.5), MAT.concrete);
+  beam.position.y = 3.35; beam.castShadow = true; beam.receiveShadow = true;
   g.add(beam);
 
-  // Track rails (subtle)
+  // Side fascia panels — gives the guideway a finished edge instead of a raw block
+  for (let s = -1; s <= 1; s += 2) {
+    const fascia = new THREE.Mesh(new THREE.BoxGeometry(13, 0.18, 0.05),
+      mat(0xb5b0a6, { roughness: 0.7 }));
+    fascia.position.set(0, 3.25, s * 0.77);
+    g.add(fascia);
+  }
+
+  // Twin running rails (silver — slightly emissive so they catch sunset light)
+  const railMat = mat(0xc6cbd2, { roughness: 0.35, metalness: 0.6 });
   for (let i = -1; i <= 1; i += 2) {
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(8, 0.08, 0.1), MAT.rockDark);
-    rail.position.set(0, 3.45, i * 0.4);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(13, 0.08, 0.09), railMat);
+    rail.position.set(0, 3.62, i * 0.42);
     g.add(rail);
   }
 
-  // Train car
+  // Center power rail (3rd rail) — yellow caution stripe
+  const powerRail = new THREE.Mesh(new THREE.BoxGeometry(13, 0.06, 0.07),
+    mat(0xffd24a, { emissive: 0xffb84a, emissiveIntensity: 0.4, roughness: 0.5 }));
+  powerRail.position.set(0, 3.6, 0);
+  g.add(powerRail);
+
+  // ----- Train car (longer, with cab nose, headlights, doors) -----
   const train = new THREE.Group();
-  const trainBody = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.9), MAT.bcBlue);
+
+  // Main body — sleek BC-blue chassis
+  const trainBody = new THREE.Mesh(
+    new THREE.BoxGeometry(3.4, 0.78, 0.95),
+    mat(0x2e6fbf, { roughness: 0.45, metalness: 0.15 })
+  );
   trainBody.position.y = 0; trainBody.castShadow = true;
   train.add(trainBody);
-  const trainTop = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.15, 0.85), MAT.white);
-  trainTop.position.y = 0.42;
+
+  // Lower belly — slightly darker so the train reads as two-tone
+  const belly = new THREE.Mesh(
+    new THREE.BoxGeometry(3.42, 0.18, 0.97),
+    mat(0x1d4b8a, { roughness: 0.5 })
+  );
+  belly.position.y = -0.42;
+  train.add(belly);
+
+  // Curved cab nose at each end (cones flattened to make windshields)
+  for (let s = -1; s <= 1; s += 2) {
+    const nose = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.7, 0.9),
+      mat(0x2e6fbf, { roughness: 0.45 })
+    );
+    nose.position.set(s * 1.85, 0, 0);
+    nose.castShadow = true;
+    train.add(nose);
+
+    // Windshield (dark glass plane on the nose)
+    const windshield = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.28, 0.4),
+      mat(0x182030, { roughness: 0.2, metalness: 0.4 })
+    );
+    windshield.position.set(s * 2.03, 0.1, 0);
+    windshield.rotation.y = s * Math.PI / 2;
+    train.add(windshield);
+
+    // Headlights (warm white)
+    for (let yOff = -0.18; yOff <= 0.18; yOff += 0.36) {
+      const headlight = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06, 8, 8),
+        mat(0xfff4c8, { emissive: 0xfff0b0, emissiveIntensity: 1.4 })
+      );
+      headlight.position.set(s * 2.04, -0.18, yOff);
+      train.add(headlight);
+    }
+  }
+
+  // Roof (lighter — pantograph cover)
+  const trainTop = new THREE.Mesh(
+    new THREE.BoxGeometry(3.3, 0.18, 0.92),
+    mat(0xe7e6df, { roughness: 0.6 })
+  );
+  trainTop.position.y = 0.48;
   train.add(trainTop);
-  // Yellow windows along the side
-  for (let i = -2; i <= 2; i++) {
-    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.28), MAT.yellow);
-    win.position.set(i * 0.45, 0.05, 0.46);
+
+  // Roof equipment box (HVAC unit)
+  const hvac = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 0.18, 0.5),
+    mat(0x6f7079, { roughness: 0.7 })
+  );
+  hvac.position.set(0, 0.66, 0);
+  train.add(hvac);
+
+  // Side stripe — TransLink-inspired blue accent
+  for (let s = -1; s <= 1; s += 2) {
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(3.3, 0.06, 0.01),
+      mat(0x4ec0ff, { emissive: 0x4ec0ff, emissiveIntensity: 0.55 })
+    );
+    stripe.position.set(0, 0.28, s * 0.48);
+    train.add(stripe);
+  }
+
+  // Windows — bright warm yellow so they read as "lit cabin" at sunset
+  const winMat = mat(0xfff2a6, { emissive: 0xffe06a, emissiveIntensity: 0.85 });
+  for (let i = -3; i <= 3; i++) {
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.3), winMat);
+    win.position.set(i * 0.45, 0.05, 0.48);
     train.add(win);
     const win2 = win.clone();
-    win2.position.z = -0.46;
+    win2.position.z = -0.48;
     win2.rotation.y = Math.PI;
     train.add(win2);
   }
-  train.position.set(0, 3.85, 0);
+
+  // Doors (slightly darker rectangles between window pairs)
+  const doorMat = mat(0x1a3866, { roughness: 0.4 });
+  for (const dx of [-1.0, 1.0]) {
+    for (let s = -1; s <= 1; s += 2) {
+      const door = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.62), doorMat);
+      door.position.set(dx, -0.05, s * 0.481);
+      if (s < 0) door.rotation.y = Math.PI;
+      train.add(door);
+    }
+  }
+
+  // Soft underglow from the train (the lit cabin spilling onto the guideway)
+  const cabinGlow = new THREE.PointLight(0xfff0a8, 0.7, 6);
+  cabinGlow.position.set(0, 0.1, 0);
+  train.add(cabinGlow);
+
+  train.position.set(0, 3.95, 0);
   g.add(train);
 
+  // ----- Station platform on the ground (small, evocative) -----
+  const platformBase = new THREE.Mesh(
+    new THREE.BoxGeometry(4.5, 0.25, 1.6),
+    mat(0xdcd6c6, { roughness: 0.8 })
+  );
+  platformBase.position.set(0, 0.0, 2.2);
+  platformBase.castShadow = true; platformBase.receiveShadow = true;
+  g.add(platformBase);
+
+  // Yellow tactile edge strip on the platform (safety line)
+  const tactile = new THREE.Mesh(
+    new THREE.BoxGeometry(4.5, 0.03, 0.18),
+    mat(0xffc645, { emissive: 0xffa820, emissiveIntensity: 0.35 })
+  );
+  tactile.position.set(0, 0.14, 1.5);
+  g.add(tactile);
+
+  // Platform canopy roof (overhead shelter)
+  const canopy = new THREE.Mesh(
+    new THREE.BoxGeometry(4.6, 0.1, 1.7),
+    mat(0x4a5a8c, { roughness: 0.5 })
+  );
+  canopy.position.set(0, 2.4, 2.2);
+  canopy.castShadow = true;
+  g.add(canopy);
+
+  // Canopy posts
+  for (const px of [-2.0, 2.0]) {
+    for (const pz of [1.6, 2.8]) {
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.06, 2.3, 6),
+        mat(0x9aa3b2, { roughness: 0.6, metalness: 0.4 })
+      );
+      post.position.set(px, 1.25, pz);
+      g.add(post);
+    }
+  }
+
+  // Station sign (TransLink-style blue panel)
+  const signPanel = new THREE.Mesh(
+    new THREE.BoxGeometry(1.4, 0.45, 0.08),
+    mat(0x2e6fbf, { emissive: 0x2e6fbf, emissiveIntensity: 0.35 })
+  );
+  signPanel.position.set(0, 2.7, 1.45);
+  g.add(signPanel);
+
+  // White "T" mark on the sign
+  const signMark = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.22, 0.32),
+    mat(0xffffff, { emissive: 0xffffff, emissiveIntensity: 0.7 })
+  );
+  signMark.position.set(-0.45, 2.7, 1.50);
+  g.add(signMark);
+
+  // Two warm platform lamps under the canopy
+  for (const lx of [-1.4, 1.4]) {
+    const lamp = new THREE.PointLight(0xffd28a, 0.6, 5);
+    lamp.position.set(lx, 2.25, 2.2);
+    g.add(lamp);
+    const bulb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 6, 6),
+      mat(0xfff4c8, { emissive: 0xfff0b0, emissiveIntensity: 1.4 })
+    );
+    bulb.position.set(lx, 2.3, 2.2);
+    g.add(bulb);
+  }
+
   // Glow + hitbox
-  const ring = makeGlowRing(3.2);
-  const hitbox = makeHitbox(9, 6, 5);
+  const ring = makeGlowRing(3.6);
+  const hitbox = makeHitbox(11, 7, 6);
   hitbox.position.y = 3;
-  const light = new THREE.PointLight(0x6ec3f0, 0.5, 10);
+  const light = new THREE.PointLight(0x6ec3f0, 0.55, 12);
   light.position.y = 4;
 
   attachLandmark('skytrain', g, hitbox, ring, light, (t) => {
-    train.position.x = Math.sin(t * 0.5) * 3.0;
-  });
+    // Train glides smoothly back and forth along the guideway
+    train.position.x = Math.sin(t * 0.5) * 4.2;
+    // Subtle headlight flicker so the train feels alive at dusk
+    cabinGlow.intensity = 0.65 + Math.sin(t * 4) * 0.05;
+  }, 5.4); // arrow sits just above the train roof
+
+  // Collision: pillars (ground-level obstacles) — train track is overhead so no collider there
+  for (const px of pillarPositions) {
+    addCollider(g.position.x + px, g.position.z + 0, 0.55);
+  }
+  // Station platform colliders (small)
+  addCollider(g.position.x, g.position.z + 2.2, 1.6);
 }
 
 /* ---------- LANDMARK 2: Coastal Guardian Longhouse ---------- */
@@ -1586,7 +2040,17 @@ function buildLonghouse() {
     flame.scale.set(1.0, s, 1.0);
     flameLight.intensity = 1.1 + Math.sin(t * 8) * 0.3;
     fireSmoke.update();
-  });
+  }, 4.0); // arrow above totem head (totem head ~3.1)
+
+  // Collision: longhouse body is the main blocker. Totem is a smaller side collider.
+  // Longhouse body is 4.5 wide × 2.6 deep, group is rotated 180° so position is symmetric.
+  addCollider(g.position.x, g.position.z, 2.6);
+  // Totem pole at local (2.6, 0, 1.4) — rotated by Math.PI so it's at world (-2.6, ?, -1.4) offset
+  // Apply the rotation to get the world position of the totem.
+  const longRot = g.rotation.y;
+  const totemLX = 2.6 * Math.cos(longRot) + 1.4 * Math.sin(longRot);
+  const totemLZ = -2.6 * Math.sin(longRot) + 1.4 * Math.cos(longRot);
+  addCollider(g.position.x + totemLX, g.position.z + totemLZ, 0.45);
 }
 
 /* ---------- LANDMARK 3: Salmon Stream ---------- */
@@ -1609,36 +2073,127 @@ function buildSalmonStream() {
   poolDeep.position.y = 0.02;
   g.add(poolDeep);
 
-  // Wooden counting weir / station
+  // Wooden counting weir / station — bigger so it stands out at the pool's edge
   const station = new THREE.Group();
-  const platform = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.15, 0.7), MAT.cedar);
-  platform.position.y = 0.5;
+  const platform = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.18, 1.1), MAT.cedar);
+  platform.position.y = 0.9;
   platform.castShadow = true;
   station.add(platform);
+
+  // Platform railing
+  for (const side of [-1, 1]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.05, 0.05), MAT.cedarDark);
+    rail.position.set(0, 1.25, side * 0.5);
+    station.add(rail);
+    for (const xx of [-0.9, 0, 0.9]) {
+      const railPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 5), MAT.cedarDark);
+      railPost.position.set(xx, 1.1, side * 0.5);
+      station.add(railPost);
+    }
+  }
+
+  // Taller station legs
   for (let i = -1; i <= 1; i += 2) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 6), MAT.cedarDark);
-    leg.position.set(i * 0.65, 0, 0);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.8, 6), MAT.cedarDark);
+    leg.position.set(i * 0.9, 0, 0);
+    leg.castShadow = true;
     station.add(leg);
     const leg2 = leg.clone();
-    leg2.position.z = 0.3; station.add(leg2);
+    leg2.position.z = 0.45; station.add(leg2);
     const leg3 = leg.clone();
-    leg3.position.z = -0.3; station.add(leg3);
+    leg3.position.z = -0.45; station.add(leg3);
   }
-  // Counter post with sign
-  const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.7, 0.08), MAT.cedarDark);
-  post.position.set(0, 1.0, 0.25);
+
+  // Tall counter post with a big readable sign
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.6, 0.12), MAT.cedarDark);
+  post.position.set(0, 1.85, 0.35);
+  post.castShadow = true;
   station.add(post);
-  const sign = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.32, 0.04), MAT.white);
-  sign.position.set(0, 1.25, 0.27);
+
+  // Bigger sign panel (looks like "DFO Salmon Count")
+  const sign = new THREE.Mesh(
+    new THREE.BoxGeometry(1.1, 0.65, 0.06),
+    mat(0xf5efde, { roughness: 0.7 })
+  );
+  sign.position.set(0, 2.3, 0.4);
   station.add(sign);
+
+  // Red salmon icon on the sign (a fish silhouette)
+  const fishIcon = new THREE.Mesh(
+    new THREE.SphereGeometry(0.15, 8, 6),
+    mat(0xd84a3a, { emissive: 0xd84a3a, emissiveIntensity: 0.5 })
+  );
+  fishIcon.scale.set(1.4, 0.45, 0.1);
+  fishIcon.position.set(-0.25, 2.35, 0.44);
+  station.add(fishIcon);
+
+  // Sign accent stripe
+  const signStripe = new THREE.Mesh(
+    new THREE.BoxGeometry(1.1, 0.08, 0.07),
+    mat(0xd84a3a, { emissive: 0xd84a3a, emissiveIntensity: 0.4 })
+  );
+  signStripe.position.set(0, 2.0, 0.44);
+  station.add(signStripe);
+
+  // Small lamp atop the post
+  const stationLamp = new THREE.Mesh(
+    new THREE.SphereGeometry(0.09, 6, 6),
+    mat(0xfff4c8, { emissive: 0xfff0b0, emissiveIntensity: 1.3 })
+  );
+  stationLamp.position.set(0, 2.72, 0.35);
+  station.add(stationLamp);
+  const stationLampLight = new THREE.PointLight(0xffe0a0, 0.5, 4);
+  stationLampLight.position.set(0, 2.72, 0.35);
+  station.add(stationLampLight);
+
   station.position.set(2.1, 0, 0.4);
   g.add(station);
 
-  // Weir poles in water
-  for (let i = -2; i <= 2; i++) {
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 6), MAT.cedarDark);
-    pole.position.set(i * 0.35, 0.18, -1.5);
+  // Taller weir poles in water (visible above the surface, lined like a fence)
+  for (let i = -3; i <= 3; i++) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 6), MAT.cedarDark);
+    pole.position.set(i * 0.32, 0.5, -1.7);
+    pole.castShadow = true;
     g.add(pole);
+    // Diagonal cross-brace between every other pole
+    if (i % 2 === 0 && i < 3) {
+      const brace = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.55, 5), MAT.cedarDark);
+      brace.position.set(i * 0.32 + 0.16, 0.75, -1.7);
+      brace.rotation.z = Math.PI / 4;
+      g.add(brace);
+    }
+  }
+
+  // Riverbank rocks around the pool
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + 0.3;
+    const r = 2.8 + Math.random() * 0.4;
+    const rock = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.28 + Math.random() * 0.15, 0),
+      mat(0x7a6c70, { roughness: 0.9 })
+    );
+    rock.position.set(Math.cos(a) * r, 0.15, Math.sin(a) * r);
+    rock.rotation.set(Math.random(), Math.random(), Math.random());
+    rock.castShadow = true;
+    g.add(rock);
+  }
+
+  // Cattails / reeds around the pool edge
+  for (let i = 0; i < 10; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 2.4 + Math.random() * 0.5;
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.8, 5),
+      mat(0x4a6a3a, { roughness: 0.9 })
+    );
+    stem.position.set(Math.cos(a) * r, 0.4, Math.sin(a) * r);
+    g.add(stem);
+    const head = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 0.18, 6),
+      mat(0x5a3a1a, { roughness: 0.95 })
+    );
+    head.position.set(Math.cos(a) * r, 0.88, Math.sin(a) * r);
+    g.add(head);
   }
 
   // Salmon — each fish leaps in a loop
@@ -1669,12 +2224,92 @@ function buildSalmonStream() {
     salmonFishes.push(f);
   }
 
+  // -------- COMIC SALMON — big cartoony fish that leaps out of the pool --------
+  // when the player arrives at the salmon stream. Triggered by the arrival system.
+  const comicSalmon = new THREE.Group();
+  // Big rounded body (much chubbier, brighter color than the small fish)
+  const cBody = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55, 14, 10),
+    mat(0xff6a4a, { roughness: 0.5 })
+  );
+  cBody.scale.set(1.0, 0.6, 0.45);
+  comicSalmon.add(cBody);
+  // Pinker belly
+  const cBelly = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55, 14, 10),
+    mat(0xffb09a, { roughness: 0.6 })
+  );
+  cBelly.scale.set(0.95, 0.4, 0.42);
+  cBelly.position.y = -0.12;
+  comicSalmon.add(cBelly);
+  // Dorsal back (darker)
+  const cBack = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55, 14, 10),
+    mat(0x9a4438, { roughness: 0.5 })
+  );
+  cBack.scale.set(0.98, 0.22, 0.43);
+  cBack.position.y = 0.16;
+  comicSalmon.add(cBack);
+  // Big cartoon tail (vertical fin)
+  const cTail = new THREE.Mesh(
+    new THREE.ConeGeometry(0.32, 0.5, 5),
+    mat(0xff6a4a, { roughness: 0.5 })
+  );
+  cTail.rotation.z = Math.PI / 2;
+  cTail.scale.set(1.0, 1.5, 0.25);
+  cTail.position.x = -0.62;
+  comicSalmon.add(cTail);
+  // Side fin
+  const cFin = new THREE.Mesh(
+    new THREE.ConeGeometry(0.15, 0.3, 4),
+    mat(0xff8a6a, { roughness: 0.5 })
+  );
+  cFin.rotation.z = -Math.PI / 6;
+  cFin.position.set(0.05, -0.18, 0.22);
+  cFin.scale.set(1, 1, 0.3);
+  comicSalmon.add(cFin);
+  // Big googly eye (white sphere + black pupil)
+  const cEyeWhite = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 10, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+  );
+  cEyeWhite.position.set(0.32, 0.08, 0.22);
+  comicSalmon.add(cEyeWhite);
+  const cEyePupil = new THREE.Mesh(
+    new THREE.SphereGeometry(0.06, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0x1a1a1a })
+  );
+  cEyePupil.position.set(0.38, 0.08, 0.27);
+  comicSalmon.add(cEyePupil);
+  // Big smile (curved line via thin torus)
+  const cSmile = new THREE.Mesh(
+    new THREE.TorusGeometry(0.08, 0.02, 6, 12, Math.PI),
+    new THREE.MeshBasicMaterial({ color: 0x1a1a1a })
+  );
+  cSmile.rotation.z = -Math.PI / 2;
+  cSmile.position.set(0.42, -0.06, 0.22);
+  comicSalmon.add(cSmile);
+
+  comicSalmon.position.set(0, -1.0, 0); // start below pool surface
+  comicSalmon.visible = false;
+  g.add(comicSalmon);
+
+  // Expose to global so the arrival system can trigger the jump
+  window._comicSalmonRef = {
+    mesh: comicSalmon,
+    parentGroup: g,
+    jumping: false,
+    jumpT: 0,        // 0..1 progress of current jump
+    jumpDuration: 1.8, // seconds for one jump arc
+    cooldown: 0,
+  };
+
   // Glow + hitbox
-  const ring = makeGlowRing(3.2);
+  const ring = makeGlowRing(3.6);
   ring.position.set(0, 0.04, 0);
-  const hitbox = makeHitbox(7, 4, 7);
-  hitbox.position.y = 1.5;
-  const light = new THREE.PointLight(0x8cd4f0, 0.4, 8);
+  const hitbox = makeHitbox(8, 5, 8);
+  hitbox.position.y = 1.8;
+  const light = new THREE.PointLight(0x8cd4f0, 0.5, 10);
   light.position.y = 1.5;
 
   attachLandmark('salmon', g, hitbox, ring, light, (t) => {
@@ -1691,13 +2326,18 @@ function buildSalmonStream() {
     }
     // Slight pool ripple via scale wobble
     pool.scale.set(1 + Math.sin(t * 1.5) * 0.01, 1, 1 + Math.cos(t * 1.5) * 0.01);
-  });
+  }, 3.6); // arrow above the taller counting station sign
+
+  // Collision: counting station body. Pool itself is walkable (shallow water).
+  // Station at local (2.1, 0, 0.4) — radius covers platform + legs.
+  addCollider(g.position.x + 2.1, g.position.z + 0.4, 1.2);
 }
 
 /* ---------- LANDMARK 4: LNG Industrial Terminal ---------- */
 function buildLNG() {
   const g = new THREE.Group();
-  g.position.set(14, 1.4, 11);
+  // Pull the LNG terminal in a touch from the shore so it sits clearly on the island
+  g.position.set(13, 1.4, 10);
   g.rotation.y = -0.4;
 
   // Main industrial building
@@ -1775,7 +2415,20 @@ function buildLNG() {
     const blink = (Math.sin(t * 3) > 0.5) ? 1.0 : 0.15;
     warning.material.emissiveIntensity = blink * 1.5;
     warningLight.intensity = blink * 0.8;
-  });
+  }, 5.0); // arrow above smokestack (stack top ~4.05)
+
+  // Collision: LNG building cluster — main building, annex, tanks, stack.
+  // Group rotated -0.4 rad, so transform local positions to world.
+  function lngCollider(lx, lz, r) {
+    const c = Math.cos(g.rotation.y);
+    const s = Math.sin(g.rotation.y);
+    addCollider(g.position.x + lx * c + lz * s, g.position.z + (-lx * s + lz * c), r);
+  }
+  lngCollider(0, 0, 1.8);     // main building
+  lngCollider(-1.8, 0.3, 1.0); // annex
+  lngCollider(1.6, -1.2, 1.0); // tank 1
+  lngCollider(3.7, -1.2, 1.0); // tank 2
+  lngCollider(0.5, 0, 0.5);    // smokestack
 }
 
 /* ---------- LANDMARK 5: Heat-Damaged Zone ---------- */
@@ -1783,82 +2436,254 @@ function buildHeatZone() {
   const g = new THREE.Group();
   g.position.set(11, 1.4, -7);
 
-  // Cracked earth patch
+  // Cracked earth patch (slightly bigger so it reads as the zone center)
   const patch = new THREE.Mesh(
-    new THREE.CircleGeometry(3.0, 24),
+    new THREE.CircleGeometry(3.4, 24),
     MAT.driedEarth
   );
   patch.rotation.x = -Math.PI / 2;
   patch.position.y = 0.03;
   patch.receiveShadow = true;
   g.add(patch);
+
+  // Bright outer boundary ring — makes the zone's edge unmistakable
+  const boundaryRing = new THREE.Mesh(
+    new THREE.RingGeometry(3.4, 3.7, 48),
+    new THREE.MeshBasicMaterial({
+      color: 0xff7a3a,
+      transparent: true,
+      opacity: 0.65,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  boundaryRing.rotation.x = -Math.PI / 2;
+  boundaryRing.position.y = 0.05;
+  g.add(boundaryRing);
+
   // Inner darker crack rings
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     const crack = new THREE.Mesh(
-      new THREE.RingGeometry(0.4 + i * 0.4, 0.45 + i * 0.4, 24),
-      new THREE.MeshBasicMaterial({ color: 0x4a2a1a, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+      new THREE.RingGeometry(0.4 + i * 0.45, 0.48 + i * 0.45, 24),
+      new THREE.MeshBasicMaterial({ color: 0x4a2a1a, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
     );
     crack.rotation.x = -Math.PI / 2;
     crack.position.y = 0.04;
     g.add(crack);
   }
 
-  // Dead snags around the zone
-  const snagPositions = [[-1.8, -1.5], [1.6, -1.7], [-1.4, 1.8], [2.0, 1.5], [0, -2.5]];
-  for (const p of snagPositions) {
-    const snag = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.2, 1.6, 6), MAT.trunkDead);
-    snag.position.set(p[0], 0.8, p[1]);
-    snag.rotation.z = (Math.random() - 0.5) * 0.3;
-    snag.castShadow = true;
-    g.add(snag);
-    // Broken top
-    const top = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.3, 5), MAT.trunkDead);
-    top.position.set(p[0], 1.7, p[1]);
-    g.add(top);
+  // Tall scorched dead trees — pushed further out so the center reads cleanly
+  // and the thermometer / warning sign are visible inside the ring of snags.
+  const tallSnagPositions = [
+    { p: [-3.0, -2.2], h: 3.4 },
+    { p: [ 2.8, -2.4], h: 3.0 },
+    { p: [-2.6,  2.6], h: 3.6 },
+    { p: [ 3.0,  2.2], h: 2.8 },
+    { p: [-0.4, -3.4], h: 3.2 },
+    { p: [ 2.4,  0.0], h: 2.6 },
+  ];
+  for (const s of tallSnagPositions) {
+    // Tall blackened trunk
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.26, s.h, 6),
+      mat(0x2a1810, { roughness: 0.95 })
+    );
+    trunk.position.set(s.p[0], s.h / 2, s.p[1]);
+    trunk.rotation.z = (Math.random() - 0.5) * 0.25;
+    trunk.castShadow = true;
+    g.add(trunk);
+
+    // Broken jagged top
+    const splinter = new THREE.Mesh(
+      new THREE.ConeGeometry(0.18, 0.55, 4),
+      mat(0x1a0e08, { roughness: 1.0 })
+    );
+    splinter.position.set(s.p[0], s.h + 0.25, s.p[1]);
+    splinter.rotation.z = (Math.random() - 0.5) * 0.4;
+    g.add(splinter);
+
+    // A couple of bare branches sticking out
+    for (let b = 0; b < 2; b++) {
+      const branch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.08, 0.9, 5),
+        mat(0x2a1810, { roughness: 0.95 })
+      );
+      const ang = Math.random() * Math.PI * 2;
+      branch.position.set(s.p[0] + Math.cos(ang) * 0.25, s.h * 0.7 + b * 0.5, s.p[1] + Math.sin(ang) * 0.25);
+      branch.rotation.z = (Math.cos(ang)) * 1.1;
+      branch.rotation.y = ang;
+      g.add(branch);
+    }
   }
 
-  // Thermometer prop
-  const thermBase = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8), MAT.white);
-  thermBase.position.set(0.5, 0.5, 0.2);
-  g.add(thermBase);
-  const thermBulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), mat(0xc7613a, { emissive: 0xc7613a, emissiveIntensity: 0.6 }));
-  thermBulb.position.set(0.5, 0.05, 0.2);
+  // Withered yellow grass tufts on the dried earth
+  for (let i = 0; i < 14; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 0.6 + Math.random() * 2.4;
+    const tuft = new THREE.Mesh(
+      new THREE.ConeGeometry(0.15, 0.4, 5),
+      mat(0xc09a4a, { roughness: 0.9 })
+    );
+    tuft.position.set(Math.cos(a) * r, 0.2, Math.sin(a) * r);
+    tuft.rotation.z = (Math.random() - 0.5) * 0.5;
+    g.add(tuft);
+  }
+
+  // Big warning thermometer post (much taller — reads as the zone marker)
+  const thermPost = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07, 0.08, 2.4, 8),
+    mat(0xeeeae0, { roughness: 0.6 })
+  );
+  thermPost.position.set(0.6, 1.2, 0.4);
+  thermPost.castShadow = true;
+  g.add(thermPost);
+
+  // Red mercury bulb at the bottom — strongly emissive so it reads as "danger"
+  const thermBulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 10, 8),
+    mat(0xe83a2a, { emissive: 0xe83a2a, emissiveIntensity: 1.0 })
+  );
+  thermBulb.position.set(0.6, 0.18, 0.4);
   g.add(thermBulb);
-  const thermTop = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), MAT.white);
-  thermTop.position.set(0.5, 1.02, 0.2);
+
+  // Red mercury column rising up the post
+  const thermColumn = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.045, 0.045, 2.1, 8),
+    mat(0xe83a2a, { emissive: 0xe83a2a, emissiveIntensity: 0.9 })
+  );
+  thermColumn.position.set(0.6, 1.15, 0.46);
+  g.add(thermColumn);
+
+  // Top cap of thermometer
+  const thermTop = new THREE.Mesh(
+    new THREE.SphereGeometry(0.09, 8, 6),
+    mat(0xeeeae0, { roughness: 0.6 })
+  );
+  thermTop.position.set(0.6, 2.42, 0.4);
   g.add(thermTop);
 
-  // Heat shimmer plane
+  // Triangular warning sign — proper flat triangle facing outward
+  // Built from a triangular shape so it renders as a real "WARNING" sign,
+  // not a thin needle. The sign is offset to the side of the thermometer.
+  const signPole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 1.6, 6),
+    mat(0x3a3a3a, { roughness: 0.7 })
+  );
+  signPole.position.set(-1.8, 0.8, 1.4);
+  signPole.castShadow = true;
+  g.add(signPole);
+
+  // Triangle shape — flat plate facing toward the player's typical approach
+  const triShape = new THREE.Shape();
+  triShape.moveTo(0, 0.6);
+  triShape.lineTo(-0.55, -0.35);
+  triShape.lineTo(0.55, -0.35);
+  triShape.lineTo(0, 0.6);
+  const warnSign = new THREE.Mesh(
+    new THREE.ShapeGeometry(triShape),
+    mat(0xffd24a, { emissive: 0xffb84a, emissiveIntensity: 0.55, roughness: 0.6, side: THREE.DoubleSide })
+  );
+  warnSign.position.set(-1.8, 2.0, 1.4);
+  warnSign.rotation.y = Math.PI * 0.85; // angled toward island center so player reads it
+  g.add(warnSign);
+
+  // Black border outline — slightly larger triangle behind the yellow one
+  const borderShape = new THREE.Shape();
+  borderShape.moveTo(0, 0.72);
+  borderShape.lineTo(-0.66, -0.42);
+  borderShape.lineTo(0.66, -0.42);
+  borderShape.lineTo(0, 0.72);
+  const warnBorder = new THREE.Mesh(
+    new THREE.ShapeGeometry(borderShape),
+    new THREE.MeshBasicMaterial({ color: 0x1a1a1a, side: THREE.DoubleSide })
+  );
+  warnBorder.position.set(-1.8, 2.0, 1.4);
+  warnBorder.position.x += Math.cos(Math.PI * 0.85) * -0.01;
+  warnBorder.position.z += Math.sin(Math.PI * 0.85) * -0.01;
+  warnBorder.rotation.y = Math.PI * 0.85;
+  g.add(warnBorder);
+
+  // Black exclamation mark on the yellow triangle
+  const exclamBar = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.32, 0.02),
+    new THREE.MeshBasicMaterial({ color: 0x1a1a1a })
+  );
+  exclamBar.position.set(-1.8, 2.05, 1.4);
+  exclamBar.position.x += Math.cos(Math.PI * 0.85) * 0.02;
+  exclamBar.position.z += Math.sin(Math.PI * 0.85) * 0.02;
+  exclamBar.rotation.y = Math.PI * 0.85;
+  g.add(exclamBar);
+  const exclamDot = new THREE.Mesh(
+    new THREE.BoxGeometry(0.08, 0.08, 0.02),
+    new THREE.MeshBasicMaterial({ color: 0x1a1a1a })
+  );
+  exclamDot.position.set(-1.8, 1.78, 1.4);
+  exclamDot.position.x += Math.cos(Math.PI * 0.85) * 0.02;
+  exclamDot.position.z += Math.sin(Math.PI * 0.85) * 0.02;
+  exclamDot.rotation.y = Math.PI * 0.85;
+  g.add(exclamDot);
+
+  // Heat shimmer plane (larger, more visible)
   const shimmer = new THREE.Mesh(
-    new THREE.PlaneGeometry(4.5, 2.5, 8, 4),
+    new THREE.PlaneGeometry(5.5, 3.2, 10, 6),
     new THREE.MeshBasicMaterial({
-      color: 0xffcc88, transparent: true, opacity: 0.18, side: THREE.DoubleSide
+      color: 0xffb070, transparent: true, opacity: 0.22, side: THREE.DoubleSide
     })
   );
-  shimmer.position.set(0, 1.0, 0);
+  shimmer.position.set(0, 1.4, 0);
   g.add(shimmer);
 
+  // Second shimmer layer at different height for depth
+  const shimmer2 = new THREE.Mesh(
+    new THREE.PlaneGeometry(4.0, 2.0, 8, 4),
+    new THREE.MeshBasicMaterial({
+      color: 0xffd090, transparent: true, opacity: 0.16, side: THREE.DoubleSide
+    })
+  );
+  shimmer2.position.set(0, 0.6, 0);
+  g.add(shimmer2);
+
   // Orange glow light
-  const heatLight = new THREE.PointLight(0xff7a3a, 0.7, 8);
-  heatLight.position.set(0, 1.5, 0);
+  const heatLight = new THREE.PointLight(0xff7a3a, 0.9, 10);
+  heatLight.position.set(0, 2.0, 0);
   g.add(heatLight);
 
-  // Glow + hitbox
-  const ring = makeGlowRing(3.4);
-  const hitbox = makeHitbox(7, 5, 7);
-  hitbox.position.y = 2;
+  // Secondary warm light from the thermometer area
+  const thermLight = new THREE.PointLight(0xff4a3a, 0.5, 4);
+  thermLight.position.set(0.6, 0.6, 0.4);
+  g.add(thermLight);
+
+  // Glow + hitbox (bigger hitbox covers the snags & thermometer)
+  const ring = makeGlowRing(3.8);
+  const hitbox = makeHitbox(8, 6, 8);
+  hitbox.position.y = 2.5;
 
   attachLandmark('heat', g, hitbox, ring, heatLight, (t) => {
     // Shimmer wobble
     const pos = shimmer.geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
-      pos.setZ(i, Math.sin(t * 3 + x * 1.5) * 0.08);
+      pos.setZ(i, Math.sin(t * 3 + x * 1.5) * 0.1);
     }
     pos.needsUpdate = true;
-    shimmer.material.opacity = 0.14 + Math.sin(t * 2) * 0.05;
-    heatLight.intensity = 0.6 + Math.sin(t * 1.5) * 0.15;
-  });
+    shimmer.material.opacity = 0.18 + Math.sin(t * 2) * 0.06;
+    shimmer2.material.opacity = 0.14 + Math.cos(t * 2.4) * 0.05;
+    shimmer2.rotation.y = Math.sin(t * 0.8) * 0.1;
+    heatLight.intensity = 0.8 + Math.sin(t * 1.5) * 0.2;
+    thermLight.intensity = 0.45 + Math.sin(t * 4) * 0.1;
+    // Mercury column pulses very subtly
+    thermColumn.material.emissiveIntensity = 0.85 + Math.sin(t * 2.5) * 0.15;
+  }, 5.0); // arrow well above the tallest snag (3.6m) so it's never obscured
+
+  // Collision: each tall scorched snag is a circular collider.
+  // tallSnagPositions was defined above with the snag positions.
+  for (const s of tallSnagPositions) {
+    addCollider(g.position.x + s.p[0], g.position.z + s.p[1], 0.4);
+  }
+  // Thermometer post + warning sign post — small colliders
+  addCollider(g.position.x + 0.6, g.position.z + 0.4, 0.3);
+  addCollider(g.position.x - 1.8, g.position.z + 1.4, 0.25);
 }
 
 /* ============================================================
@@ -2036,7 +2861,8 @@ function pickLandmark(clientX, clientY) {
   const hitboxes = landmarks.map(l => l.hitbox);
   const intersects = raycaster.intersectObjects(hitboxes, false);
   if (intersects.length > 0) {
-    return intersects[0].object.userData.landmarkId;
+    const obj = intersects[0].object;
+    return hitboxIdMap.get(obj.uuid) || obj.userData.landmarkId || null; // FIX: UUID map is primary
   }
   return null;
 }
@@ -2096,6 +2922,7 @@ function closeScenario() {
 /* ============================================================
    CELEBRATION FX — teen-voice shouts, confetti, score pop, milestone toasts
    ============================================================ */
+/* ----- Generic correct shouts — punchy, varied tone ----- */
 const CORRECT_SHOUTS = [
   "FACTS! 🔥",
   "RESPECT 💯",
@@ -2105,15 +2932,151 @@ const CORRECT_SHOUTS = [
   "HUZZAH!",
   "CLEAN ✨",
   "BIG BRAIN 🧠",
+  "LOCKED IN 🔒",
+  "SHARP! ⚡",
+  "NAILED IT 🎯",
+  "TOO EASY 😎",
+  "READING THE ROOM 📖",
+  "GENIUS HOURS 💡",
+  "ECO-BRAIN 🌎",
+  "CLIMATE-CODED ✨",
+  "YOU SEE IT 👀",
+  "TRUTH! 🎤",
+  "VIBES ON 💚",
+  "MAJOR W 🏆",
+  "STEP IT UP 🚀",
+  "GOOD SCIENCE 🧪",
+  "FIELD-READY 🥾",
+  "LEGEND 🌟",
+  "EYES SHARP 🔍",
+  "PROPER ✓✓",
+  "BIG SOLAR ENERGY ☀️",
+  "ROOTED 🌱",
+  "OUTSTANDING ⭐",
+  "FRESH READ 🌊",
 ];
+
+/* ----- Generic wrong shouts — encouraging, never dismissive ----- */
 const WRONG_SHOUTS = [
   "ALMOST!",
   "CLOSE READ",
   "KEEP GOING",
   "GOOD TRY ↻",
   "NICE EFFORT",
+  "RE-READ IT 👀",
+  "ONE MORE LOOK",
+  "ALMOST THERE",
+  "PIVOT! 🔄",
+  "ZOOM IN 🔍",
+  "NOT QUITE",
+  "TRY AGAIN ↺",
+  "CLOSE CALL",
+  "SHIFT GEARS ⚙️",
+  "RECALIBRATE",
+  "TAKE TWO 🎬",
 ];
-// Milestone messages keyed by how many scenarios are resolved
+
+/* ----- Per-scenario flavor messages: rotate through these when player
+   gets THIS specific landmark correct/wrong. Adds context-aware variety. ----- */
+const SCENARIO_FLAVOR = {
+  skytrain: {
+    correctShouts: ["ALL ABOARD! 🚆", "TRANSIT-PILLED 🚆", "ON THE RAILS!", "LINE EXTENDED ⚡"],
+    correctSubs: [
+      "Every train ride is one less car on Highway 1.",
+      "Electrified transit runs on BC hydro — basically zero-carbon.",
+      "You just out-read most provincial politicians.",
+      "Mass transit beats EVs at scale. You called it.",
+    ],
+    wrongSubs: [
+      "Hint: think about what replaces single-occupancy cars.",
+      "Cars are BC's biggest emitter — what shrinks that?",
+      "Electric trains in BC run on hydro. That changes the math.",
+    ],
+  },
+  longhouse: {
+    correctShouts: ["KNOWLEDGE-KEEPERS 🌲", "RESPECT 🌲", "STRATEGY, NOT CHARITY", "10,000 YEARS DEEP"],
+    correctSubs: [
+      "Indigenous-led stewardship outperforms top-down conservation. Fact.",
+      "80% of remaining biodiversity is on Indigenous-managed land.",
+      "You read this one right — this is how solutions actually scale.",
+      "Listening to the people who've managed these waters longest? That's strategy.",
+    ],
+    wrongSubs: [
+      "Hint: this is leadership, not just preservation.",
+      "Whose stewardship has worked here for 10,000+ years?",
+      "Think solution — not impact, not cause.",
+    ],
+  },
+  salmon: {
+    correctShouts: ["DOWNSTREAM EFFECT 🐟", "YOU SEE THE CHAIN", "ECOSYSTEM-CODED 🌊", "HARD READ ✓"],
+    correctSubs: [
+      "Warming rivers, collapsing runs — that's a climate impact, called.",
+      "From 4 million sockeye to 290,000. That's not a fishing problem.",
+      "When salmon fall, forests, bears, and orcas feel it too. You connected it.",
+      "Big Bar landslide + heat = the chain you just spotted.",
+    ],
+    wrongSubs: [
+      "Hint: warming water → what kind of climate concept is that?",
+      "Is the collapse the *cause* or the *result* of warming?",
+      "Think downstream consequences, not new emissions.",
+    ],
+  },
+  lng: {
+    correctShouts: ["YOU SAW THE MOLECULE 🔥", "BRIDGE FUEL? NOPE.", "METHANE-MATH ✓", "RECEIPTS! 📜"],
+    correctSubs: [
+      "Methane is ~80× more potent than CO₂ over 20 years. You read the label.",
+      "\"Natural gas\" is a marketing term. The molecule is methane. You called it.",
+      "Politicians say \"bridge fuel.\" You said \"climate cause.\" Receipts.",
+      "Every leak on the supply chain hits the atmosphere hard. Nice catch.",
+    ],
+    wrongSubs: [
+      "Hint: what does burning fossil gas *add* to the atmosphere?",
+      "Methane is a greenhouse gas — what category does that put this in?",
+      "Marketing terms don't change chemistry. Try again.",
+    ],
+  },
+  heat: {
+    correctShouts: ["YOU READ THE DOME ☀️", "619 LIVES — YOU SAW IT", "ATTRIBUTION-CODED 🌡️", "EYES OPEN 👁️"],
+    correctSubs: [
+      "2021 heat dome: BC's deadliest weather event. You called it an impact.",
+      "Attribution science says human warming made this ~150× more likely.",
+      "Lytton hit 49.6°C the day before the village burned. You got this one right.",
+      "This wasn't a freak event — it's the climate doing the math out loud.",
+    ],
+    wrongSubs: [
+      "Hint: did the heat dome *cause* warming, or did warming cause it?",
+      "Think about which way the arrow points — climate → event.",
+      "Extreme heat is what climate change *produces*, not creates.",
+    ],
+  },
+};
+
+/* ----- Generic sub-messages for any answer (mix in with scenario flavor) ----- */
+const GENERIC_CORRECT_SUBS = [
+  "That's a solid read.",
+  "You're seeing it clearly.",
+  "Good eye. Keep going.",
+  "Pattern-recognition mode: on.",
+  "Real-world climate literacy = this.",
+  "Sharp call. Onto the next.",
+];
+const GENERIC_WRONG_SUBS = [
+  "No worries — re-read the scenario.",
+  "Wrong category, right effort.",
+  "Climate words are confusing. Try again.",
+  "You're closer than you think.",
+  "The mistake is part of the learning.",
+];
+
+/* ----- Streak hype tiers ----- */
+const STREAK_BADGES = {
+  2: "🔥 2 IN A ROW",
+  3: "⚡ TRIPLE READ",
+  4: "🌟 ON FIRE — 4 STRAIGHT",
+  5: "🏆 PERFECT RUN",
+};
+
+/* ----- Milestone messages keyed by how many scenarios are resolved ----- */
 const MILESTONES = {
   1: "1 down. The fog is starting to clear.",
   2: "Two reads in. Eyes up — three to go.",
@@ -2121,13 +3084,36 @@ const MILESTONES = {
   4: "One more scenario. Don't blink.",
 };
 
+/* Pick a random item that hasn't shown up in the last `memory` picks.
+   Returns the item AND mutates the `recent` array. */
+function pickNoRepeat(list, recent, memory) {
+  if (!list || list.length === 0) return '';
+  const memSize = Math.min(memory, list.length - 1);
+  // Try several times; fall back to fully random if everything's in recent
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const pick = list[Math.floor(Math.random() * list.length)];
+    if (recent.indexOf(pick) === -1) {
+      recent.push(pick);
+      while (recent.length > memSize) recent.shift();
+      return pick;
+    }
+  }
+  const pick = list[Math.floor(Math.random() * list.length)];
+  recent.push(pick);
+  while (recent.length > memSize) recent.shift();
+  return pick;
+}
+
 const _celebEl     = document.getElementById('celebration');
 const _celebShout  = document.getElementById('celebrationShout');
+const _celebSubShout = document.getElementById('celebrationSubShout');
 const _scorePopEl  = document.getElementById('scorePop');
 const _milestoneEl = document.getElementById('milestone');
+const _streakBadgeEl = document.getElementById('streakBadge');
 let _scorePopTimer = null;
 let _milestoneTimer = null;
 let _celebTimer = null;
+let _streakTimer = null;
 
 function spawnConfetti(correct) {
   // Pick a palette: pink/purple for correct, warm orange for wrong
@@ -2152,18 +3138,48 @@ function spawnConfetti(correct) {
   }
 }
 
-function showCelebration(correct) {
-  const list = correct ? CORRECT_SHOUTS : WRONG_SHOUTS;
-  _celebShout.textContent = list[Math.floor(Math.random() * list.length)];
+function showCelebration(correct, scenarioId) {
+  // Pool together the generic list + per-scenario flavor list, then pick with no-repeat
+  const flavor = scenarioId && SCENARIO_FLAVOR[scenarioId] ? SCENARIO_FLAVOR[scenarioId] : null;
+  const shoutPool = []
+    .concat(correct ? CORRECT_SHOUTS : WRONG_SHOUTS)
+    .concat(flavor && correct ? flavor.correctShouts : (flavor && !correct ? [] : []));
+  const subPool = []
+    .concat(correct ? GENERIC_CORRECT_SUBS : GENERIC_WRONG_SUBS)
+    .concat(flavor && correct ? (flavor.correctSubs || []) : [])
+    .concat(flavor && !correct ? (flavor.wrongSubs || []) : []);
+
+  const shout = pickNoRepeat(shoutPool, STATE.recentShouts, 6);
+  const sub   = pickNoRepeat(subPool,   STATE.recentSubs,   5);
+
+  _celebShout.textContent = shout;
   _celebShout.className = 'shout' + (correct ? '' : ' wrong');
-  // Restart animation by re-flowing
+  _celebSubShout.textContent = sub;
+  _celebSubShout.className = 'sub-shout' + (correct ? '' : ' wrong');
+
+  // Restart animations by re-flowing
   _celebShout.style.animation = 'none';
+  _celebSubShout.style.animation = 'none';
   void _celebShout.offsetWidth;
+  void _celebSubShout.offsetWidth;
   _celebShout.style.animation = '';
+  _celebSubShout.style.animation = '';
+
   _celebEl.classList.add('show');
   spawnConfetti(correct);
   if (_celebTimer) clearTimeout(_celebTimer);
-  _celebTimer = setTimeout(() => { _celebEl.classList.remove('show'); }, 1500);
+  _celebTimer = setTimeout(() => { _celebEl.classList.remove('show'); }, 2100);
+}
+
+function showStreakBadge(streakCount) {
+  const label = STREAK_BADGES[streakCount];
+  if (!label) return;
+  _streakBadgeEl.textContent = label;
+  _streakBadgeEl.classList.remove('show');
+  void _streakBadgeEl.offsetWidth;
+  _streakBadgeEl.classList.add('show');
+  if (_streakTimer) clearTimeout(_streakTimer);
+  _streakTimer = setTimeout(() => { _streakBadgeEl.classList.remove('show'); }, 2000);
 }
 
 function showScorePop(points) {
@@ -2191,11 +3207,21 @@ function chooseAnswer(choice) {
   const wasResolved = STATE.resolved.has(id);
 
   if (!wasResolved) {
-    const pts = correct ? 20 : 5;
-    if (correct) STATE.correct += 1;
+    // Streak bonus: each consecutive correct answer adds 5 extra points
+    let pts = correct ? 20 : 5;
+    if (correct) {
+      STATE.correct += 1;
+      STATE.streak += 1;
+      if (STATE.streak > STATE.bestStreak) STATE.bestStreak = STATE.streak;
+      // Streak bonus stacks: +5 per consecutive correct after the first
+      if (STATE.streak >= 2) pts += 5 * (STATE.streak - 1);
+    } else {
+      STATE.streak = 0; // wrong answer breaks the chain
+    }
     STATE.score += pts;
     STATE.resolved.add(id);
     updateHUD();
+
     // Dim glow ring + clear fog
     const lm = landmarks.find(l => l.id === id);
     if (lm) {
@@ -2207,12 +3233,18 @@ function chooseAnswer(choice) {
     scene.fog.density = STATE.fogDensity;
 
     // CELEBRATION FX — fires only on first attempt
-    showCelebration(correct);
+    showCelebration(correct, id);
     showScorePop(pts);
+
+    // Streak badge — fires only on 2+ correct in a row
+    if (correct && STATE.streak >= 2) {
+      setTimeout(() => showStreakBadge(STATE.streak), 900);
+    }
+
     // Milestone toast after the celebration animation runs
     setTimeout(() => {
       showMilestone(MILESTONES[STATE.resolved.size]);
-    }, 1600);
+    }, 1800);
   }
 
   // Show feedback
@@ -2240,6 +3272,18 @@ closeBtn.addEventListener('click', () => {
   closeScenario();
   if (STATE.resolved.size === SCENARIOS.length) {
     showFinalScreen();
+  }
+});
+
+// X close button at top-right of popup — students can back out without answering
+document.getElementById('scenarioCloseX').addEventListener('click', () => {
+  closeScenario();
+});
+
+// Pressing ESC also closes the popup so students can quickly back out
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && STATE.activeScenario && popup.style.display === 'flex') {
+    closeScenario();
   }
 });
 
@@ -2277,6 +3321,9 @@ document.getElementById('restartBtn').addEventListener('click', () => {
   STATE.resolved.clear();
   STATE.score = 0;
   STATE.correct = 0;
+  STATE.streak = 0;
+  STATE.recentShouts.length = 0;
+  STATE.recentSubs.length = 0;
   STATE.fogDensity = 0.015;
   scene.fog.density = STATE.fogDensity;
   for (const lm of landmarks) {
@@ -2418,6 +3465,154 @@ document.getElementById('musicToggle').addEventListener('click', () => {
 });
 
 /* ============================================================
+   PROCEDURAL SFX — train chug + horn, salmon splash + boing
+   All synthesized via Web Audio (no external audio files needed).
+   Honors the master music toggle (musicOn).
+   ============================================================ */
+function _getAC() {
+  if (audio && audio.ctx) return audio.ctx;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    return new AC();
+  } catch (e) { return null; }
+}
+
+// Train horn — short cheerful toot-toot
+function playTrainHorn() {
+  if (!musicOn) return;
+  const ctx = _getAC();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  function toot(start, durMs) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc1.type = 'sawtooth';
+    osc2.type = 'sawtooth';
+    osc1.frequency.value = 220;
+    osc2.frequency.value = 277; // major-third-ish for "toot toot" cheer
+    const dur = durMs / 1000;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.18, start + 0.04);
+    gain.gain.linearRampToValueAtTime(0.0, start + dur);
+    osc1.connect(gain); osc2.connect(gain);
+    // soft low-pass
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1400;
+    gain.connect(lp);
+    lp.connect(ctx.destination);
+    osc1.start(start); osc2.start(start);
+    osc1.stop(start + dur + 0.05);
+    osc2.stop(start + dur + 0.05);
+  }
+  toot(now,        0.32);
+  toot(now + 0.40, 0.55);
+}
+
+// Train chugging — looping low rhythmic "chug-chug" while in range
+let _trainChugInterval = null;
+function startTrainChug() {
+  if (_trainChugInterval) return;
+  if (!musicOn) return;
+  const ctx = _getAC();
+  if (!ctx) return;
+  function chug() {
+    if (!musicOn) { stopTrainChug(); return; }
+    const now = ctx.currentTime;
+    // Short percussive low pulse (filtered noise) for each chug
+    const bufferSize = ctx.sampleRate * 0.18;
+    const buf = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const env = Math.pow(1 - i / bufferSize, 2.5);
+      data[i] = (Math.random() * 2 - 1) * env * 0.5;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 320;
+    const g = ctx.createGain();
+    g.gain.value = 0.12;
+    src.connect(lp); lp.connect(g); g.connect(ctx.destination);
+    src.start(now);
+    src.stop(now + 0.18);
+  }
+  chug();
+  _trainChugInterval = setInterval(chug, 480); // ~125 BPM chug rhythm
+}
+function stopTrainChug() {
+  if (_trainChugInterval) {
+    clearInterval(_trainChugInterval);
+    _trainChugInterval = null;
+  }
+}
+
+// Salmon splash — short water-plop synth + cartoon "boing" tail
+function playSalmonSplash() {
+  if (!musicOn) return;
+  const ctx = _getAC();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+
+  // Splash — filtered noise burst, lowpass swept downward
+  const bufferSize = ctx.sampleRate * 0.5;
+  const buf = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const env = Math.pow(1 - i / bufferSize, 1.5);
+    data[i] = (Math.random() * 2 - 1) * env * 0.6;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(3000, now);
+  lp.frequency.exponentialRampToValueAtTime(400, now + 0.4);
+  const g = ctx.createGain();
+  g.gain.value = 0.18;
+  src.connect(lp); lp.connect(g); g.connect(ctx.destination);
+  src.start(now);
+  src.stop(now + 0.5);
+
+  // Boing — quick descending sine sweep for the comic touch
+  const boing = ctx.createOscillator();
+  boing.type = 'sine';
+  boing.frequency.setValueAtTime(900, now + 0.1);
+  boing.frequency.exponentialRampToValueAtTime(180, now + 0.45);
+  const bg = ctx.createGain();
+  bg.gain.setValueAtTime(0, now + 0.1);
+  bg.gain.linearRampToValueAtTime(0.14, now + 0.13);
+  bg.gain.linearRampToValueAtTime(0.0, now + 0.5);
+  boing.connect(bg);
+  bg.connect(ctx.destination);
+  boing.start(now + 0.1);
+  boing.stop(now + 0.55);
+}
+
+// One-shot sparkle "ding" for arrival burst (subtle, not annoying)
+function playArrivalDing() {
+  if (!musicOn) return;
+  const ctx = _getAC();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, now);
+  osc.frequency.exponentialRampToValueAtTime(1320, now + 0.12);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, now);
+  g.gain.linearRampToValueAtTime(0.08, now + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+  osc.connect(g);
+  g.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.45);
+}
+
+/* ============================================================
    GAME LOOP
    ============================================================ */
 const clock = new THREE.Clock();
@@ -2438,7 +3633,7 @@ function updatePlayer(dt) {
   // Map screen-up to away-from-camera direction
   // Camera is at +X,+Z so up-screen ≈ (-X, -Z)
   const camDirX = -1, camDirZ = -1;
-  const camRightX = -1, camRightZ = 1;
+  const camRightX = 1, camRightZ = -1; // FIX: left/right was inverted
   const len = Math.hypot(camDirX, camDirZ);
   const cx = camDirX / len, cz = camDirZ / len;
   const rx = camRightX / Math.hypot(camRightX, camRightZ);
@@ -2452,8 +3647,36 @@ function updatePlayer(dt) {
     const mag = Math.hypot(moveX, moveZ);
     const nx = moveX / mag;
     const nz = moveZ / mag;
-    player.position.x += nx * PLAYER_SPEED * dt;
-    player.position.z += nz * PLAYER_SPEED * dt;
+    const stepX = nx * PLAYER_SPEED * dt;
+    const stepZ = nz * PLAYER_SPEED * dt;
+
+    // Sliding collision: try full move; if blocked, try X-only, then Z-only.
+    // This lets the player slide along an obstacle instead of dead-stopping.
+    const playerRadius = 0.45;
+    const tryMove = (tx, tz) => {
+      for (let i = 0; i < colliders.length; i++) {
+        const c = colliders[i];
+        const ddx = tx - c.x;
+        const ddz = tz - c.z;
+        const minR = playerRadius + c.r;
+        if (ddx * ddx + ddz * ddz < minR * minR) return false;
+      }
+      return true;
+    };
+
+    const targetX = player.position.x + stepX;
+    const targetZ = player.position.z + stepZ;
+    if (tryMove(targetX, targetZ)) {
+      player.position.x = targetX;
+      player.position.z = targetZ;
+    } else if (tryMove(targetX, player.position.z)) {
+      // Slide along Z-aligned wall
+      player.position.x = targetX;
+    } else if (tryMove(player.position.x, targetZ)) {
+      // Slide along X-aligned wall
+      player.position.z = targetZ;
+    }
+    // else: fully blocked — stay put this frame
 
     // Clamp to island
     const d = Math.hypot(player.position.x, player.position.z);
@@ -2546,6 +3769,7 @@ let _proxCurrentId  = null;
 function updateProximityHint() {
   if (!STATE.started || STATE.paused) {
     _proxHintEl.style.display = 'none';
+    _proxHintEl.classList.remove('arrived');
     _proxCurrentId = null;
     return;
   }
@@ -2566,14 +3790,18 @@ function updateProximityHint() {
 
   if (!nearest) {
     _proxHintEl.style.display = 'none';
+    _proxHintEl.classList.remove('arrived');
     _proxCurrentId = null;
     return;
   }
 
-  // Get the world position of the arrow (top of landmark)
+  // Get the world position of the arrow (sits at top of landmark — use the arrow's own y)
+  const arrowLocalY = (nearest.arrow && nearest.arrow.userData && typeof nearest.arrow.userData.baseY === 'number')
+    ? nearest.arrow.userData.baseY
+    : 4.5;
   _proxWorld.set(
     nearest.group.position.x,
-    nearest.group.position.y + 8.4,
+    nearest.group.position.y + arrowLocalY + 1.0, // hint just above the arrow tip
     nearest.group.position.z
   );
   _proxScreen.copy(_proxWorld).project(camera);
@@ -2587,31 +3815,565 @@ function updateProximityHint() {
   const sx = (_proxScreen.x * 0.5 + 0.5) * w;
   const sy = (-_proxScreen.y * 0.5 + 0.5) * h;
 
-  // Update text only when target changes (prevents re-rendering each frame)
-  if (_proxCurrentId !== nearest.id) {
+  // Detect "arrived" state — player is inside the arrival radius for this landmark
+  const arrived = (nearestDist < PATH_ARRIVAL);
+
+  // Update text + class only when target/state changes (prevents re-rendering each frame)
+  const stateKey = nearest.id + (arrived ? ':arrived' : ':approach');
+  if (_proxCurrentId !== stateKey) {
     const s = SCENARIO_BY_ID[nearest.id];
-    _proxHintText.textContent = s.hint || s.title;
-    _proxCurrentId = nearest.id;
+    if (arrived) {
+      _proxHintText.textContent = "You're here — click to investigate!";
+      _proxHintEl.classList.add('arrived');
+    } else {
+      _proxHintText.textContent = s.hint || s.title;
+      _proxHintEl.classList.remove('arrived');
+    }
+    _proxCurrentId = stateKey;
   }
   _proxHintEl.style.left = sx + 'px';
   _proxHintEl.style.top  = sy + 'px';
   _proxHintEl.style.display = 'inline-block';
 }
 
+/* ============================================================
+   RED CARPET GROUND PATH — glowing runner guiding the player
+   toward the nearest unresolved landmark.
+   A long rose-red plane lays from the player to the landmark,
+   with gold/pink emissive borders and a pulse of light traveling
+   down its length toward the destination.
+   ============================================================ */
+const PATH_RADIUS     = 16.0;   // how close player must be for carpet to appear
+const PATH_ARRIVAL    = 3.0;    // distance considered "arrived" — carpet hides
+const PATH_WIDTH      = 1.4;    // width of the carpet runner
+let _carpetTargetId = null;
+
+/* Carpet pieces — created once, repositioned & resized each frame */
+const carpetGroup = new THREE.Group();
+carpetGroup.visible = false;
+world.add(carpetGroup);
+
+// Main rose-red plane with a procedural pulse texture (canvas-generated)
+function makeCarpetTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 32;
+  const ctx = c.getContext('2d');
+  // Base rose gradient down the length
+  const g = ctx.createLinearGradient(0, 0, 256, 0);
+  g.addColorStop(0, '#9a1a4a');
+  g.addColorStop(0.5, '#d83a72');
+  g.addColorStop(1, '#9a1a4a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 32);
+  // Chevrons painted down the centerline pointing toward end (right = target)
+  ctx.fillStyle = 'rgba(255, 220, 230, 0.55)';
+  for (let i = 0; i < 12; i++) {
+    const x = i * 22 + 6;
+    ctx.beginPath();
+    ctx.moveTo(x, 8);
+    ctx.lineTo(x + 10, 16);
+    ctx.lineTo(x, 24);
+    ctx.lineTo(x + 4, 16);
+    ctx.closePath();
+    ctx.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  return tex;
+}
+const _carpetTexture = makeCarpetTexture();
+
+const carpetMain = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  new THREE.MeshBasicMaterial({
+    map: _carpetTexture,
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.92,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    depthTest: false, // always draws on top of ground geometry (e.g. heat dome patch)
+    fog: false,
+  })
+);
+carpetMain.rotation.x = -Math.PI / 2;
+carpetMain.renderOrder = 100; // render after ground so it's never occluded
+carpetGroup.add(carpetMain);
+
+// Two thin emissive gold borders running along each side of the carpet
+function makeBorder() {
+  const b = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xffe085,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      depthTest: false,
+      fog: false,
+    })
+  );
+  b.rotation.x = -Math.PI / 2;
+  b.renderOrder = 101;
+  return b;
+}
+const carpetBorderL = makeBorder();
+const carpetBorderR = makeBorder();
+carpetGroup.add(carpetBorderL);
+carpetGroup.add(carpetBorderR);
+
+// A bright moving pulse strip that slides toward the target
+const carpetPulse = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  new THREE.MeshBasicMaterial({
+    color: 0xfff0d8,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    depthTest: false,
+    fog: false,
+  })
+);
+carpetPulse.rotation.x = -Math.PI / 2;
+carpetPulse.renderOrder = 102;
+carpetGroup.add(carpetPulse);
+
+function hideCarpet() {
+  carpetGroup.visible = false;
+  _carpetTargetId = null;
+}
+
+function updateCarpet(t) {
+  if (!STATE.started || STATE.paused) { hideCarpet(); return; }
+
+  // Find nearest unresolved landmark within range
+  let nearest = null;
+  let nearestDist = PATH_RADIUS;
+  for (const lm of landmarks) {
+    if (STATE.resolved.has(lm.id)) continue;
+    const dx = lm.group.position.x - player.position.x;
+    const dz = lm.group.position.z - player.position.z;
+    const d = Math.hypot(dx, dz);
+    if (d < nearestDist) { nearestDist = d; nearest = lm; }
+  }
+
+  // Hide if no landmark in range — but DO NOT hide just because player is close.
+  // Carpet stays visible all the way to the landmark base.
+  if (!nearest) { hideCarpet(); return; }
+
+  _carpetTargetId = nearest.id;
+
+  // Geometry of the carpet from player toward target
+  const tx = nearest.group.position.x;
+  const tz = nearest.group.position.z;
+  const px = player.position.x;
+  const pz = player.position.z;
+  const dx = tx - px;
+  const dz = tz - pz;
+  const dist = Math.hypot(dx, dz);
+
+  // Very close — carpet collapses to a small bright pad under the player to keep visible
+  if (dist < 0.6) {
+    carpetGroup.position.set(px, 1.55, pz);
+    carpetGroup.rotation.y = 0;
+    carpetMain.scale.set(PATH_WIDTH, PATH_WIDTH, 1);
+    carpetBorderL.scale.set(0.06, PATH_WIDTH + 0.2, 1);
+    carpetBorderR.scale.set(0.06, PATH_WIDTH + 0.2, 1);
+    const borderOffset = PATH_WIDTH / 2 + 0.03;
+    carpetBorderL.position.set(-borderOffset, 0.005, 0);
+    carpetBorderR.position.set( borderOffset, 0.005, 0);
+    carpetPulse.scale.set(PATH_WIDTH * 0.95, 0.5, 1);
+    carpetPulse.position.set(0, 0.01, 0);
+    carpetPulse.material.opacity = 0.6 + Math.sin(t * 4) * 0.2;
+    carpetMain.material.opacity = 0.95;
+    carpetBorderL.material.opacity = 0.95;
+    carpetBorderR.material.opacity = 0.95;
+    _carpetTexture.repeat.set(2, 1);
+    _carpetTexture.offset.x = -(t * 0.6) % 1;
+    carpetGroup.visible = true;
+    return;
+  }
+
+  // Carpet starts ~1.0m in front of player, ends right at the landmark base
+  const start = 1.0;
+  const end   = Math.max(start + 0.5, dist - 0.4); // reach essentially up to landmark
+  const length = end - start;
+  const ux = dx / dist;
+  const uz = dz / dist;
+  const angle = Math.atan2(dx, dz); // align carpet's "long axis" along direction
+
+  // Midpoint of the carpet runner
+  const mx = px + ux * (start + length * 0.5);
+  const mz = pz + uz * (start + length * 0.5);
+
+  // Raised y position so the carpet always sits above any landmark ground geometry
+  // (e.g. heat dome's cracked-earth patch at y≈1.43 was hiding the old carpet)
+  carpetGroup.position.set(mx, 1.55, mz);
+  carpetGroup.rotation.y = angle;
+
+  // Main carpet
+  carpetMain.scale.set(PATH_WIDTH, length, 1);
+  // Animate the chevron texture so it visibly slides toward the target
+  _carpetTexture.repeat.set(Math.max(1, length * 0.9), 1);
+  _carpetTexture.offset.x = -(t * 0.6) % 1;
+
+  // Borders run down each side, tiny bit longer than the main carpet
+  const borderW = 0.06;
+  const borderLen = length + 0.2;
+  const borderOffset = PATH_WIDTH / 2 + borderW / 2;
+  carpetBorderL.scale.set(borderW, borderLen, 1);
+  carpetBorderL.position.set(-borderOffset, 0.005, 0);
+  carpetBorderR.scale.set(borderW, borderLen, 1);
+  carpetBorderR.position.set( borderOffset, 0.005, 0);
+
+  // Pulsing border glow — brighter when player is right at the landmark
+  const proximityBoost = Math.max(0, 1 - nearestDist / PATH_RADIUS);
+  const borderPulse = 0.75 + Math.sin(t * 3) * 0.2 + proximityBoost * 0.2;
+  carpetBorderL.material.opacity = Math.min(1, borderPulse);
+  carpetBorderR.material.opacity = Math.min(1, borderPulse);
+
+  // Bright running pulse strip — a short bright section that slides toward target
+  const pulseLen = Math.min(2.0, length * 0.35);
+  const pulseProgress = (t * 0.5) % 1; // 0→1, loops
+  const pulseLocalY = -length / 2 + pulseLen / 2 + pulseProgress * (length - pulseLen);
+  carpetPulse.scale.set(PATH_WIDTH * 0.95, pulseLen, 1);
+  carpetPulse.position.set(0, 0.01, pulseLocalY);
+  carpetPulse.material.opacity = 0.5 * Math.sin(pulseProgress * Math.PI);
+
+  // Carpet stays fully visible — no proximity fade-out
+  carpetMain.material.opacity = 0.92;
+  carpetGroup.visible = true;
+}
+
+/* ============================================================
+   ARRIVAL FX — when player is within ARRIVAL_RADIUS of an unresolved
+   landmark, show: expanding ground ripple, intensified arrow,
+   one-shot sparkle burst, and landmark-specific reactions
+   (SkyTrain horn + chug, salmon comic jump, etc).
+   ============================================================ */
+const ARRIVAL_RADIUS = 4.5;   // slightly larger than carpet's collapse distance
+let _arrivedLandmarkId = null;
+
+// Comic salmon dialogue lines — randomly picked when the salmon jumps
+const SALMON_LINES = [
+  "CATCH ME IF YOU CAN!",
+  "I'M LATE FOR SPAWNING!",
+  "TELL OPRAH I SAID HI!",
+  "MY GRANDPA WAS BIGGER!",
+  "PUT THAT CAMERA AWAY!",
+  "DO I LOOK FAT IN THIS?",
+  "BLUB BLUB! HUMAN!",
+  "BEAR-FREE ZONE PLEASE!",
+  "I'M SWIMMING UPHILL!",
+  "THIS RIVER IS TOO WARM!",
+  "GLUB GLUB SAVE US!",
+];
+let _salmonBubbleEl = null;
+let _salmonRecentLines = [];
+function showSalmonBubble(screenX, screenY) {
+  if (!_salmonBubbleEl) _salmonBubbleEl = document.getElementById('salmonBubble');
+  if (!_salmonBubbleEl) return;
+  // Pick a line that wasn't the last one shown
+  let line;
+  for (let i = 0; i < 6; i++) {
+    line = SALMON_LINES[Math.floor(Math.random() * SALMON_LINES.length)];
+    if (_salmonRecentLines.indexOf(line) === -1) break;
+  }
+  _salmonRecentLines.push(line);
+  while (_salmonRecentLines.length > 3) _salmonRecentLines.shift();
+  _salmonBubbleEl.textContent = line;
+  _salmonBubbleEl.style.left = screenX + 'px';
+  _salmonBubbleEl.style.top  = screenY + 'px';
+  _salmonBubbleEl.classList.add('show');
+}
+function hideSalmonBubble() {
+  if (!_salmonBubbleEl) _salmonBubbleEl = document.getElementById('salmonBubble');
+  if (_salmonBubbleEl) _salmonBubbleEl.classList.remove('show');
+}
+
+// Update the comic salmon's jump animation each frame
+function updateComicSalmon(dt, t) {
+  const ref = window._comicSalmonRef;
+  if (!ref) return;
+  if (ref.cooldown > 0) ref.cooldown -= dt;
+
+  if (ref.jumping) {
+    ref.jumpT += dt / ref.jumpDuration;
+    if (ref.jumpT >= 1) {
+      ref.jumping = false;
+      ref.jumpT = 0;
+      ref.mesh.visible = false;
+      ref.cooldown = 4.5; // wait before next jump
+      hideSalmonBubble();
+      return;
+    }
+    // Arc trajectory — sine curve for height
+    const arcHeight = Math.sin(ref.jumpT * Math.PI) * 3.2;
+    ref.mesh.position.y = -0.3 + arcHeight;
+    // Spin around its long axis while in the air
+    ref.mesh.rotation.z = ref.jumpT * Math.PI * 1.5;
+    // Tilt forward at launch, backward on descent
+    ref.mesh.rotation.x = (ref.jumpT - 0.5) * 1.2;
+    ref.mesh.visible = true;
+
+    // Project the salmon's world position to screen and move the bubble there
+    const ref2 = window._comicSalmonRef;
+    if (_salmonBubbleEl && _salmonBubbleEl.classList.contains('show')) {
+      const wp = new THREE.Vector3();
+      ref.mesh.getWorldPosition(wp);
+      wp.y += 1.4; // bubble floats above salmon's head
+      const sp = wp.clone().project(camera);
+      const w = window.innerWidth, h = window.innerHeight;
+      const sx = (sp.x * 0.5 + 0.5) * w;
+      const sy = (-sp.y * 0.5 + 0.5) * h;
+      _salmonBubbleEl.style.left = sx + 'px';
+      _salmonBubbleEl.style.top  = sy + 'px';
+    }
+  }
+}
+
+function triggerComicSalmonJump() {
+  const ref = window._comicSalmonRef;
+  if (!ref || ref.jumping || ref.cooldown > 0) return;
+  ref.jumping = true;
+  ref.jumpT = 0;
+  ref.mesh.visible = true;
+  ref.mesh.position.set(0, -0.3, 0);
+  playSalmonSplash();
+  // Show speech bubble shortly after the salmon clears the water
+  setTimeout(() => {
+    const wp = new THREE.Vector3();
+    ref.mesh.getWorldPosition(wp);
+    wp.y += 1.5;
+    const sp = wp.clone().project(camera);
+    const w = window.innerWidth, h = window.innerHeight;
+    const sx = (sp.x * 0.5 + 0.5) * w;
+    const sy = (-sp.y * 0.5 + 0.5) * h;
+    showSalmonBubble(sx, sy);
+  }, 250);
+}
+
+// Three concentric ripple rings that expand outward from the landmark
+const _arrivalRipples = [];
+for (let i = 0; i < 3; i++) {
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.4, 0.55, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0xff4a96,
+      transparent: true,
+      opacity: 0.0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.visible = false;
+  ring.userData.phaseOffset = i / 3; // stagger the rings
+  world.add(ring);
+  _arrivalRipples.push(ring);
+}
+
+// Sparkle particle pool around the player's feet (one-shot per arrival)
+const SPARKLE_COUNT = 14;
+const _sparkles = [];
+for (let i = 0; i < SPARKLE_COUNT; i++) {
+  const s = new THREE.Mesh(
+    new THREE.SphereGeometry(0.06, 6, 6),
+    new THREE.MeshBasicMaterial({
+      color: 0xffd66b,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  s.visible = false;
+  s.userData = { vx: 0, vy: 0, vz: 0, life: 0 };
+  world.add(s);
+  _sparkles.push(s);
+}
+
+function triggerSparkleBurst(cx, cz) {
+  // Fire sparkles outward and slightly upward from player's feet
+  for (const s of _sparkles) {
+    const ang = Math.random() * Math.PI * 2;
+    const speed = 0.04 + Math.random() * 0.06;
+    s.position.set(cx, 1.5, cz);
+    s.userData.vx = Math.cos(ang) * speed;
+    s.userData.vz = Math.sin(ang) * speed;
+    s.userData.vy = 0.06 + Math.random() * 0.06;
+    s.userData.life = 1.0;
+    s.material.opacity = 1.0;
+    s.visible = true;
+  }
+}
+
+function updateSparkles(dt) {
+  for (const s of _sparkles) {
+    if (!s.visible) continue;
+    s.position.x += s.userData.vx;
+    s.position.y += s.userData.vy;
+    s.position.z += s.userData.vz;
+    s.userData.vy -= 0.004; // gravity-ish so they arc
+    s.userData.life -= dt * 0.9;
+    if (s.userData.life <= 0) {
+      s.visible = false;
+      s.material.opacity = 0;
+    } else {
+      s.material.opacity = Math.max(0, s.userData.life);
+      const scale = 0.6 + s.userData.life * 0.4;
+      s.scale.set(scale, scale, scale);
+    }
+  }
+}
+
+function hideArrivalRipples() {
+  for (const r of _arrivalRipples) {
+    r.visible = false;
+    r.material.opacity = 0;
+  }
+}
+
+function updateArrivalFX(t) {
+  const dt = 0.016;
+  if (!STATE.started || STATE.paused) {
+    if (_arrivedLandmarkId !== null) {
+      handleArrivalExit(_arrivedLandmarkId);
+      _arrivedLandmarkId = null;
+      hideArrivalRipples();
+    }
+    updateSparkles(dt);
+    updateComicSalmon(dt, t);
+    return;
+  }
+
+  // Find nearest unresolved landmark within arrival radius
+  let nearest = null;
+  let nearestDist = ARRIVAL_RADIUS;
+  for (const lm of landmarks) {
+    if (STATE.resolved.has(lm.id)) continue;
+    const dx = lm.group.position.x - player.position.x;
+    const dz = lm.group.position.z - player.position.z;
+    const d = Math.hypot(dx, dz);
+    if (d < nearestDist) { nearestDist = d; nearest = lm; }
+  }
+
+  if (!nearest) {
+    if (_arrivedLandmarkId !== null) {
+      handleArrivalExit(_arrivedLandmarkId);
+      _arrivedLandmarkId = null;
+      hideArrivalRipples();
+    }
+    updateSparkles(dt);
+    updateComicSalmon(dt, t);
+    return;
+  }
+
+  // First-arrival edge: player just entered the arrival zone — fire sparkles + per-landmark reactions
+  if (_arrivedLandmarkId !== nearest.id) {
+    // If we were arrived at a different landmark, exit that one first
+    if (_arrivedLandmarkId !== null) handleArrivalExit(_arrivedLandmarkId);
+    _arrivedLandmarkId = nearest.id;
+    triggerSparkleBurst(player.position.x, player.position.z);
+    playArrivalDing();
+    handleArrivalEnter(nearest.id);
+  }
+
+  // Animate ripple rings expanding outward on the ground at landmark's base
+  const lx = nearest.group.position.x;
+  const lz = nearest.group.position.z;
+  for (let i = 0; i < _arrivalRipples.length; i++) {
+    const r = _arrivalRipples[i];
+    r.position.set(lx, 0.06, lz);
+    const phase = ((t * 0.7 + r.userData.phaseOffset) % 1);
+    // Ring expands from 0.5 to 3.5 units, fades as it goes
+    const radius = 0.5 + phase * 3.0;
+    r.scale.set(radius, radius, 1);
+    r.material.opacity = (1 - phase) * 0.55;
+    r.visible = true;
+  }
+
+  // Boost the landmark's arrow for that "you're here" feeling
+  if (nearest.arrow && nearest.arrow.userData) {
+    const bob = nearest.arrow.userData.bob;
+    if (bob) {
+      const arrivalBob = Math.sin(t * 6) * 0.5;
+      bob.position.y = arrivalBob;
+      // Brighten halo + cone slightly
+      const cone = nearest.arrow.userData.cone;
+      if (cone && cone.material) {
+        cone.material.emissiveIntensity = 1.6 + Math.sin(t * 6) * 0.4;
+      }
+    }
+  }
+
+  updateSparkles(dt);
+  updateComicSalmon(dt, t);
+
+  // While arrived at salmon, periodically re-trigger the comic jump
+  if (_arrivedLandmarkId === 'salmon') {
+    const ref = window._comicSalmonRef;
+    if (ref && !ref.jumping && ref.cooldown <= 0) {
+      triggerComicSalmonJump();
+    }
+  }
+}
+
+// Per-landmark reactions when player ENTERS the arrival zone
+function handleArrivalEnter(id) {
+  if (id === 'skytrain') {
+    playTrainHorn();
+    startTrainChug();
+  } else if (id === 'salmon') {
+    triggerComicSalmonJump();
+  }
+}
+// Per-landmark cleanup when player LEAVES the arrival zone
+function handleArrivalExit(id) {
+  if (id === 'skytrain') {
+    stopTrainChug();
+  } else if (id === 'salmon') {
+    hideSalmonBubble();
+    const ref = window._comicSalmonRef;
+    if (ref) {
+      ref.mesh.visible = false;
+      ref.jumping = false;
+      ref.cooldown = 0;
+    }
+  }
+}
+
+// Reusable per-frame wrapper that logs (once) when a step fails but
+// keeps the animation loop alive. A single broken frame should not
+// brick the whole game.
+const _frameErrorsLogged = {};
+function _safeFrameStep(name, fn) {
+  try { fn(); } catch (err) {
+    if (!_frameErrorsLogged[name]) {
+      console.error('frame step failed:', name, err);
+      _frameErrorsLogged[name] = true;
+    }
+  }
+}
+
 function animateFrame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
 
-  updatePlayer(dt);
-  updateCamera();
-  animateLandmarks(t);
-  updateRiver(t);
-  updateProximityHint();
+  _safeFrameStep('updatePlayer',      () => updatePlayer(dt));
+  _safeFrameStep('updateCamera',      () => updateCamera());
+  _safeFrameStep('animateLandmarks',  () => animateLandmarks(t));
+  _safeFrameStep('updateRiver',       () => updateRiver(t));
+  _safeFrameStep('updateProximityHint', () => updateProximityHint());
+  _safeFrameStep('updateCarpet',      () => updateCarpet(t));
+  _safeFrameStep('updateArrivalFX',   () => updateArrivalFX(t));
+  _safeFrameStep('cabinSmoke',        () => cabinSmoke.update());
+  _safeFrameStep('render',            () => renderer.render(scene, camera));
 
-  // Cabin smoke continues even without LNG/longhouse being active
-  cabinSmoke.update();
-
-  renderer.render(scene, camera);
   requestAnimationFrame(animateFrame);
 }
 
@@ -2625,30 +4387,38 @@ function onResize() {
 }
 window.addEventListener('resize', onResize);
 
-// Build the world
-buildIsland();
-buildOcean();
-buildRiver();
-buildForest();
-buildRocks();
-buildLogs();
-buildMountains();
-buildLighthouse();
-buildCabin();
-buildDock();
-buildSkyTrain();
-buildLonghouse();
-buildSalmonStream();
-buildLNG();
-buildHeatZone();
+// Build the world — wrapped in try/catch so a failure in any one
+// build step doesn't prevent the rest of the game from loading.
+function safeBuild(name, fn) {
+  try { fn(); } catch (err) {
+    console.error('World build step failed:', name, err);
+  }
+}
+safeBuild('island',    buildIsland);
+safeBuild('ocean',     buildOcean);
+safeBuild('river',     buildRiver);
+safeBuild('forest',    buildForest);
+safeBuild('rocks',     buildRocks);
+safeBuild('logs',      buildLogs);
+safeBuild('mountains', buildMountains);
+safeBuild('lighthouse',buildLighthouse);
+safeBuild('cabin',     buildCabin);
+safeBuild('dock',      buildDock);
+safeBuild('skytrain',  buildSkyTrain);
+safeBuild('longhouse', buildLonghouse);
+safeBuild('salmon',    buildSalmonStream);
+safeBuild('lng',       buildLNG);
+safeBuild('heatzone',  buildHeatZone);
 
 // Store base light intensities for reset
-for (const lm of landmarks) {
-  if (lm.light) lm.light.userData.baseIntensity = lm.light.intensity;
-}
+try {
+  for (const lm of landmarks) {
+    if (lm.light) lm.light.userData.baseIntensity = lm.light.intensity;
+  }
+} catch (err) { console.error('light reset prep failed:', err); }
 
-updateHUD();
-animateFrame();
+try { updateHUD(); } catch (err) { console.error('updateHUD failed:', err); }
+try { animateFrame(); } catch (err) { console.error('animateFrame failed:', err); }
 
 // Start button
 document.getElementById('startBtn').addEventListener('click', () => {
@@ -2671,6 +4441,25 @@ canvas.addEventListener('mousedown', () => {
 
 // First-frame focus attempt
 try { canvas.focus(); } catch (e) {}
+
+// Defensive re-bind: in some environments the first bind may miss; this
+// no-op-safe rebind guarantees the start button always works.
+(function ensureStartButton() {
+  const btn = document.getElementById('startBtn');
+  if (!btn) { console.warn('startBtn not found at boot'); return; }
+  btn.addEventListener('click', () => {
+    document.getElementById('intro').style.display = 'none';
+    STATE.started = true;
+    STATE.paused = false;
+    try { startMusic(); } catch(e) {}
+    try { canvas.focus(); } catch(e) {}
+    const tip = document.getElementById('onboardTip');
+    if (tip) {
+      tip.classList.add('show');
+      setTimeout(() => { tip.classList.remove('show'); }, 5500);
+    }
+  });
+})();
 
 </script>
 </body>
